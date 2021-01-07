@@ -12,9 +12,7 @@ data class Person(val email: String, val password: String, val firstName: String
 data class PersonDTO(val email: String, val firstName: String)
 
 val person = Person(
-    "lorem@email.com", "person", "person", Address(
-        "000", "new york", "new york", 2010
-    )
+    "lorem@email.com", "person", "person",
 )
 
 val dto = person.adaptTo(PersonDTO::class)
