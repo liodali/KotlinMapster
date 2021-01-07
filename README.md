@@ -11,9 +11,7 @@
 data class Person(val email: String, val password: String, val firstName: String)
 data class PersonDTO(val email: String, val firstName: String)
 
-val person = Person(
-    "lorem@email.com", "person", "person",
-)
+val person = Person("lorem@email.com", "person", "person",)
 
 val dto = person.adaptTo(PersonDTO::class)
 ```

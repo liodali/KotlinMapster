@@ -15,6 +15,7 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-reflect:1.4.21"
 
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.0'
+    testImplementation 'io.github.serpro69:kotlin-faker:1.4.1'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
 }
 
