@@ -7,15 +7,19 @@ class FirstTest {
     data class Person(val email: String, val password: String, val firstName: String, val adr: Address)
     data class PersonDTO(val email: String, val firstName: String, val adr: AddressDTO)
 
+    private fun Address.toAdrDTO(): AddressDTO {
+        return AddressDTO(
+            this.adr1,
+            this.ville,
+            this.codePostal
+        )
+    }
+
     private fun Person.toDTO(): PersonDTO {
         return PersonDTO(
             this.email,
             this.firstName,
-            AddressDTO(
-                this.adr.adr1,
-                this.adr.ville,
-                this.adr.codePostal
-            )
+            this.adr.toAdrDTO()
         )
     }
 

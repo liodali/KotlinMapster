@@ -1,9 +1,7 @@
 package mapper
 
-import java.lang.reflect.TypeVariable
 import kotlin.reflect.*
 import kotlin.reflect.full.*
-import kotlin.reflect.jvm.reflect
 
 fun <T : Any, R : Any> T.adaptTo(dest: KClass<R>): R {
     if (dest.isData) {
@@ -15,7 +13,7 @@ fun <T : Any, R : Any> T.adaptTo(dest: KClass<R>): R {
                 v = v!!.adaptTo(
                     dest.memberProperties
                         .find { it.name == field.name }!!
-                        .returnType.classifier as KClass<R>
+                        .returnType.classifier as KClass<*>
                 )
             } else {
                 if ((p.type.classifier as KClass<*>).superclasses.contains(Collection::class)) {
