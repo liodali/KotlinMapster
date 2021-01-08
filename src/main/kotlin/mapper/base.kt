@@ -2,10 +2,7 @@ package mapper
 
 import java.lang.reflect.TypeVariable
 import kotlin.reflect.*
-import kotlin.reflect.full.createInstance
-import kotlin.reflect.full.declaredMemberProperties
-import kotlin.reflect.full.memberProperties
-import kotlin.reflect.full.primaryConstructor
+import kotlin.reflect.full.*
 import kotlin.reflect.jvm.reflect
 
 fun <T : Any, R : Any> T.adaptTo(dest: KClass<R>): R {
@@ -20,6 +17,13 @@ fun <T : Any, R : Any> T.adaptTo(dest: KClass<R>): R {
                         .find { it.name == field.name }!!
                         .returnType.classifier as KClass<R>
                 )
+            } else {
+                if ((p.type.classifier as KClass<*>).superclasses.contains(Collection::class)) {
+
+                    val typeDest = (dest.memberProperties.first { td -> td.name == p.name }
+                        .returnType).arguments.first().type!!
+                  v = (v!! as Collection<Any>).adaptListTo(typeDest.classifier as KClass<*> )
+                }
             }
             v
         }.toTypedArray()
