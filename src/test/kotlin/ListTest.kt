@@ -1,9 +1,9 @@
 import io.github.serpro69.kfaker.Faker
+import java.util.Random
 import mapper.adaptListTo
 import org.junit.jupiter.api.Test
-import java.util.*
 
-class TestList {
+class ListTest {
     data class Address(val id: Int, val adr1: String, val ville: String, val codePostal: String)
     data class AddressDTO(val adr1: String, val ville: String, val codePostal: String)
     data class Person(val email: String, val password: String, val firstName: String, val adr: Address)
@@ -33,7 +33,7 @@ class TestList {
             this.name,
             this.etuds.map {
                 it.toDTO()
-            },
+            }
         )
     }
 
@@ -62,19 +62,17 @@ class TestList {
             )
         }
 
-        ///-------------------------------------------------------------------
+        // -------------------------------------------------------------------
         val dtos = persons.adaptListTo(PersonDTO::class)
         println(dtos)
         println("///-------------------------------------------------------------------\n")
         println(persons)
 
-        ///-------------------------------------------------------------------
+        // / -------------------------------------------------------------------
         assert(
             dtos.first() == personDTOs.first()
         )
     }
-
-
     @Test
     fun testNestedAdaptListTo() {
         val faker = Faker()
@@ -113,16 +111,15 @@ class TestList {
         val classRoomDTOs = classRooms.map {
             it.toDTO()
         }.toList()
-        ///-------------------------------------------------------------------
+        // / -------------------------------------------------------------------
         val dtos = classRooms.adaptListTo(ClassRoomDTO::class)
         println(dtos)
         println("///-------------------------------------------------------------------\n")
         println(classRoomDTOs)
 
-        ///-------------------------------------------------------------------
+        // / -------------------------------------------------------------------
         assert(
             dtos.first() == classRoomDTOs.first()
         )
     }
-
 }

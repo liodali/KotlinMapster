@@ -1,11 +1,15 @@
 package mapper
 
-import kotlin.reflect.*
-import kotlin.reflect.full.*
+import kotlin.reflect.KClass
+import kotlin.reflect.full.createInstance
+import kotlin.reflect.full.declaredMemberProperties
+import kotlin.reflect.full.memberProperties
+import kotlin.reflect.full.primaryConstructor
+import kotlin.reflect.full.superclasses
 
 fun <T : Any, R : Any> T.adaptTo(dest: KClass<R>): R {
     if (dest.isData) {
-        //argDest.map { it.key to it.value }.toTypedArray()
+        // argDest.map { it.key to it.value }.toTypedArray()
         val argsValues = dest.primaryConstructor!!.parameters.map { p ->
             val field = (this::class as KClass<Any>).declaredMemberProperties.first { p.name == it.name }
             var v = field.get(this)
@@ -17,10 +21,9 @@ fun <T : Any, R : Any> T.adaptTo(dest: KClass<R>): R {
                 )
             } else {
                 if ((p.type.classifier as KClass<*>).superclasses.contains(Collection::class)) {
-
-                    val typeDest = (dest.memberProperties.first { td -> td.name == p.name }
-                        .returnType).arguments.first().type!!
-                  v = (v!! as Collection<Any>).adaptListTo(typeDest.classifier as KClass<*> )
+                    val typeDest =
+                        (dest.memberProperties.first { td -> td.name == p.name }.returnType).arguments.first().type!!.classifier as KClass<*>
+                    v = (v!! as Collection<Any>).adaptListTo(typeDest)
                 }
             }
             v
@@ -28,7 +31,6 @@ fun <T : Any, R : Any> T.adaptTo(dest: KClass<R>): R {
         return dest.primaryConstructor!!.call(*argsValues)
     }
     return dest.createInstance()
-
 }
 
 fun <T : Any, R : Any> Collection<T>.adaptListTo(dest: KClass<R>): Collection<R> {
@@ -38,6 +40,4 @@ fun <T : Any, R : Any> Collection<T>.adaptListTo(dest: KClass<R>): Collection<R>
     }
 
     return listDest
-
 }
-

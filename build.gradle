@@ -1,12 +1,19 @@
 plugins {
     id 'java'
+    id 'java-library'
     id 'org.jetbrains.kotlin.jvm' version '1.4.21'
+    id 'org.jlleitschuh.gradle.ktlint' version '9.2.1'
+    id 'jacoco'
+    id 'maven-publish'
 }
-
+sourceSets {
+    main.kotlin.srcDirs += 'src/main/mapper'
+}
 group 'dali.hamza'
-version '0.1'
+version '0.1.0'
 
 repositories {
+    mavenLocal()
     mavenCentral()
 }
 
@@ -21,4 +28,62 @@ dependencies {
 
 test {
     useJUnitPlatform()
+    finalizedBy jacocoTestReport
 }
+def props = new Properties()
+file("github.properties").withInputStream { props.load(it) }
+
+// Attempts to read the GPR user from local
+// project properties and then system environment variables.
+def getGprUser(props) {
+    if (props.getProperty("gpr.user") != null) {
+        return props.getProperty("gpr.user")
+    } else {
+        return System.getenv("GPR_USER") ?: ""
+    }
+}
+// Attempts to read the GPR key from local
+// project properties and then system environment variables.
+def getGprKey(props) {
+    if (props.getProperty("gpr.key") != null) {
+        return props.getProperty("gpr.key")
+    } else {
+        return System.getenv("GPR_KEY") ?: ""
+    }
+}
+
+def user = getGprUser(props)
+def key = getGprKey(props)
+publishing {
+
+    repositories {
+        maven {
+            name = "Mapster-0.1"
+            url = uri("https://maven.pkg.github.com/$user/KotlinMapster")
+            credentials {
+                username = user
+                password = key
+            }
+        }
+    }
+    publications {
+        mavenJava(MavenPublication) {
+            groupId = 'com.hamza.dali'
+            artifactId = "mapster-ktx"
+            version = "$version"
+            from components.java
+            pom {
+                name = 'MapsterKotlin'
+                description = 'Fun and easy mapper library.'
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+            }
+        }
+    }
+}
+
+

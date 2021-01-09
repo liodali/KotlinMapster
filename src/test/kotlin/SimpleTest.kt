@@ -1,7 +1,8 @@
+
 import mapper.adaptTo
 import org.junit.jupiter.api.Test
 
-class FirstTest {
+class SimpleTest {
     data class Address(val id: String, val adr1: String, val ville: String, val codePostal: Int)
     data class AddressDTO(val adr1: String, val ville: String, val codePostal: Int)
     data class Person(val email: String, val password: String, val firstName: String, val adr: Address)
@@ -31,21 +32,21 @@ class FirstTest {
             )
         )
 
-        ///-------------------------------------------------------------------
+        // -------------------------------------------------------------------
         val startTimeAdapter = System.currentTimeMillis()
         val dto = person.adaptTo(PersonDTO::class)
         val endTimeAdapter = System.currentTimeMillis()
         val timeExecutionAdapter = endTimeAdapter - startTimeAdapter
-        ///-------------------------------------------------------------------
+        // -------------------------------------------------------------------
 
         val startTimeManual = System.currentTimeMillis()
         person.toDTO()
         val endTimeManual = System.currentTimeMillis()
         val timeExecutionManual = startTimeManual - endTimeManual
 
-        ///-------------------------------------------------------------------
-        println("adaptTo timer:${timeExecutionAdapter} ms ")
-        println("manual Mapper timer:${timeExecutionManual} ms ")
+        // -------------------------------------------------------------------
+        println("adaptTo timer:$timeExecutionAdapter ms ")
+        println("manual Mapper timer:$timeExecutionManual ms ")
         assert(
             dto == PersonDTO(
                 "lorem@email.com", "person", AddressDTO(
@@ -54,5 +55,4 @@ class FirstTest {
             )
         )
     }
-
 }
