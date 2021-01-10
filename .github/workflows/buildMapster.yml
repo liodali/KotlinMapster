@@ -14,6 +14,7 @@ jobs:
         with:
             java-version: 1.8
       - uses: fwilhe2/setup-kotlin@main
+      - name: gradle wrapper --gradle-version 6.7 --distribution-type all
         run: gradle wrapper
       # This action will create a github release and optionally upload an artifact to it.
       # https://github.com/ncipollo/release-action
