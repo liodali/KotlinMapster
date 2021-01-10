@@ -9,8 +9,16 @@ plugins {
 sourceSets {
     main.kotlin.srcDirs += 'src/main/mapper'
 }
+
 group 'dali.hamza'
 version '0.1.1'
+
+sourceCompatibility = 1.8
+configure([compileKotlin,compileTestKotlin]){
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+}
 
 repositories {
     mavenLocal()

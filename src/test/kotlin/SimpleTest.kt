@@ -1,8 +1,12 @@
 
+import io.github.serpro69.kfaker.Faker
+import mapper.UnSupportedMappingType
 import mapper.adaptTo
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 
 class SimpleTest {
+
     data class Address(val id: String, val adr1: String, val ville: String, val codePostal: Int)
     data class AddressDTO(val adr1: String, val ville: String, val codePostal: Int)
     data class Person(val email: String, val password: String, val firstName: String, val adr: Address)
@@ -54,5 +58,15 @@ class SimpleTest {
                 )
             )
         )
+    }
+    @Test
+    fun failTest() {
+        class User(private val id: Int, private val name: String)
+        class UserDTO(private val name: String)
+        val user = User(id = 1, name = Faker().name.firstName())
+
+        assertThrows<UnSupportedMappingType> {
+            user.adaptTo(UserDTO::class)
+        }
     }
 }
