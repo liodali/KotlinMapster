@@ -16,6 +16,10 @@ jobs:
       - uses: fwilhe2/setup-kotlin@main
       # This action will create a github release and optionally upload an artifact to it.
       # https://github.com/ncipollo/release-action
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+      - name: Gradle Build
+        run: ./gradlew build
       - name: publish new version
         run: ./gradlew publish
         env:
