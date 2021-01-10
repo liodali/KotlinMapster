@@ -5,6 +5,25 @@
 * Nested mapping
 * Array & List mapping(available soon)
 
+`version : 0.1.1`
+
+### Gradle Installation
+```groovy
+repositories {
+    maven {
+        url = "https://maven.pkg.github.com/liodali/KotlinMapster"
+        credentials {
+            username = "liodali"
+            password = "b956e329e8b80286465c34628180a08b570108e7"
+        }
+    }
+}
+dependencies {
+    implementations "com.dali.hamza:mapster-ktx:version"
+}
+
+```
+
 ### simple example :
 
 ```kotlin
