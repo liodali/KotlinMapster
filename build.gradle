@@ -14,7 +14,7 @@ group 'dali.hamza'
 version '0.1.1'
 
 sourceCompatibility = 1.8
-configure([compileKotlin,compileTestKotlin]){
+configure([compileKotlin, compileTestKotlin]) {
     kotlinOptions {
         jvmTarget = "1.8"
     }
@@ -39,7 +39,9 @@ test {
     finalizedBy jacocoTestReport
 }
 def props = new Properties()
-file("github.properties").withInputStream { props.load(it) }
+def file = file("github.properties")
+if (file.exists())
+    file.withInputStream { props.load(it) }
 
 // Attempts to read the GPR user from local
 // project properties and then system environment variables.
