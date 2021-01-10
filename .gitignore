@@ -3,3 +3,5 @@
 /build/
 /gradle/
 github.properties
+/KtLintCheck.sh
+/.gitignore

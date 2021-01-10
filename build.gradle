@@ -10,7 +10,7 @@ sourceSets {
     main.kotlin.srcDirs += 'src/main/mapper'
 }
 group 'dali.hamza'
-version '0.1.0'
+version '0.1.1'
 
 repositories {
     mavenLocal()
@@ -35,7 +35,7 @@ file("github.properties").withInputStream { props.load(it) }
 
 // Attempts to read the GPR user from local
 // project properties and then system environment variables.
-def getGprUser(props) {
+static def getGprUser(props) {
     if (props.getProperty("gpr.user") != null) {
         return props.getProperty("gpr.user")
     } else {
@@ -44,7 +44,7 @@ def getGprUser(props) {
 }
 // Attempts to read the GPR key from local
 // project properties and then system environment variables.
-def getGprKey(props) {
+static def getGprKey(props) {
     if (props.getProperty("gpr.key") != null) {
         return props.getProperty("gpr.key")
     } else {
@@ -58,7 +58,7 @@ publishing {
 
     repositories {
         maven {
-            name = "Mapster-0.1"
+            name = "Mapster-Kotlin"
             url = uri("https://maven.pkg.github.com/$user/KotlinMapster")
             credentials {
                 username = user
