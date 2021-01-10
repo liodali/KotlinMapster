@@ -13,7 +13,7 @@ repositories {
     maven {
         url = "https://maven.pkg.github.com/liodali/KotlinMapster"
         credentials {
-            username = "liodali"
+            username = "YOUR-USERNAME"
             password = "YOUR-TOKEN-GITHUB"
         }
     }
