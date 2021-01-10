@@ -1,7 +1,6 @@
 package mapper
 
 import kotlin.reflect.KClass
-import kotlin.reflect.full.createInstance
 import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.primaryConstructor
@@ -30,7 +29,7 @@ fun <T : Any, R : Any> T.adaptTo(dest: KClass<R>): R {
         }.toTypedArray()
         return dest.primaryConstructor!!.call(*argsValues)
     }
-    return dest.createInstance()
+    throw UnSupportedMappingType
 }
 
 fun <T : Any, R : Any> Collection<T>.adaptListTo(dest: KClass<R>): Collection<R> {
