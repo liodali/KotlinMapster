@@ -2,15 +2,23 @@ package mapper
 
 import kotlin.reflect.KClass
 import kotlin.reflect.full.declaredMemberProperties
+import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.primaryConstructor
 import kotlin.reflect.full.superclasses
+import mapper.annotations.MapTo
 
 fun <T : Any, R : Any> T.adaptTo(dest: KClass<R>): R {
     if (dest.isData) {
-        // argDest.map { it.key to it.value }.toTypedArray()
         val argsValues = dest.primaryConstructor!!.parameters.map { p ->
-            val field = (this::class as KClass<Any>).declaredMemberProperties.first { p.name == it.name }
+            val field = (this::class as KClass<Any>).declaredMemberProperties.first {
+                var name = it.name
+                val mapTo = it.findAnnotation<MapTo>()
+                if (mapTo != null) {
+                    name = mapTo.destAttName
+                }
+                p.name == name
+            }
             var v = field.get(this)
             if ((p.type.classifier as KClass<*>).isData) {
                 v = v!!.adaptTo(
