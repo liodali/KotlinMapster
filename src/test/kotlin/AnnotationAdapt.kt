@@ -1,4 +1,6 @@
+import io.github.serpro69.kfaker.Faker
 import mapper.adaptTo
+import mapper.annotations.CombineTo
 import mapper.annotations.MapTo
 import org.junit.jupiter.api.Test
 
@@ -45,5 +47,38 @@ class AnnotationAdapt {
         val login = person.adaptTo(LoginUser::class)
 
         assert(manualLogin == login)
+    }
+
+    @Test
+    fun testCombineToAnnotation() {
+        val faker = Faker()
+
+        data class User(
+            @CombineTo(destAtt = "fullName", index = 0) val firstName: String,
+            @CombineTo(destAtt = "fullName", index = 1) val lastName: String,
+            val CIN: String
+        )
+
+        data class UserDTO(
+            val fullName: String,
+            val CIN: String
+        )
+
+        fun User.toDTO(): UserDTO {
+            return UserDTO(
+                fullName = "${this.firstName} ${this.lastName}",
+                CIN = this.CIN
+            )
+        }
+
+        val user = User(
+            firstName = faker.name.firstName(),
+            lastName = faker.name.lastName(),
+            CIN = "0000"
+        )
+        val manuallyDTO = user.toDTO()
+        val dyo = user.adaptTo(UserDTO::class)
+
+        assert(manuallyDTO == dyo)
     }
 }
