@@ -22,11 +22,16 @@ jobs:
         run: chmod +x gradlew
       - name: Gradle Build
         run: ./gradlew build
-      - name: publish new version
+      - name: publish new version to github package
         run: ./gradlew publish
         env:
           GPR_USER: ${{ secrets.GPR_USER }}
           GPR_KEY: ${{ secrets.GPR_KEY }}
+      - name: publish tp bintray jcenter
+        run: ./github bintrayUpload
+        env:
+          GPR_USER: ${{ secrets.GPR_USER }}
+          GPR_KEY: ${{ secrets.BINTRAY_KEY }}
       - name: Create a Release JAR
         uses: ncipollo/release-action@v1
         with:

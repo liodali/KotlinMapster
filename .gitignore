@@ -3,7 +3,9 @@
 /build/
 /gradle/
 github.properties
+gradle.properties
 /KtLintCheck.sh
 /removeTagLocalRemote.sh
 /.gitignore
 /tagManager.sh
+/local.properties
