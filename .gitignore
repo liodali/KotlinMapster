@@ -6,3 +6,4 @@ github.properties
 /KtLintCheck.sh
 /removeTagLocalRemote.sh
 /.gitignore
+/tagManager.sh

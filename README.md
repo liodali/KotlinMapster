@@ -3,9 +3,9 @@
 * Fun and easily mapper from object to another
 * Runtime mapping
 * Nested mapping
-* Array & List mapping(available soon)
+* Array & List mapping
 
-`version : 0.2.0`
+`version : 0.2.1`
 
 ### Gradle Installation
 ```groovy
@@ -46,6 +46,6 @@ val persons = listOf(Person("lorem@email.com", "person", "person",), Person("lor
 val dtos = persons.adaptListTo(PersonDTO::class)
 ```
 
-###PS
+### PS
 * To create Github personal token follow this link and also you need to choose `read:packages` :
   * https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token
