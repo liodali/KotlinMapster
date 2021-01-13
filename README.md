@@ -8,8 +8,10 @@
 `version : 0.2.1`
 
 ### Gradle Installation
+
 ```groovy
 repositories {
+    // using github packages
     maven {
         url = "https://maven.pkg.github.com/liodali/KotlinMapster"
         credentials {
@@ -17,11 +19,14 @@ repositories {
             password = "YOUR-TOKEN-GITHUB"
         }
     }
+    // or jcenter bintray
+    maven {
+        url = uri("https://dl.bintray.com/liodali/KotlinMapster")
+    }
 }
 dependencies {
     implementations "com.dali.hamza:mapster-ktx:version"
 }
-
 ```
 
 ### simple example :
@@ -47,5 +52,6 @@ val dtos = persons.adaptListTo(PersonDTO::class)
 ```
 
 ### PS
+
 * To create Github personal token follow this link and also you need to choose `read:packages` :
-  * https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token
+    * https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token
