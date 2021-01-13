@@ -1,4 +1,13 @@
+buildscript {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        jcenter()
+    }
+}
+
 plugins {
+    id "com.jfrog.bintray" version("1.8.4")
     id 'java'
     id 'java-library'
     id 'org.jetbrains.kotlin.jvm' version '1.4.21'
@@ -6,6 +15,8 @@ plugins {
     id 'jacoco'
     id 'maven-publish'
 }
+
+
 sourceSets {
     main.kotlin.srcDirs += 'src/main/mapper'
 }
@@ -23,12 +34,12 @@ configure([compileKotlin, compileTestKotlin]) {
 repositories {
     mavenLocal()
     mavenCentral()
+    jcenter()
 }
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib"
     implementation "org.jetbrains.kotlin:kotlin-reflect:1.4.21"
-
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.0'
     testImplementation 'io.github.serpro69:kotlin-faker:1.4.1'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
@@ -38,10 +49,13 @@ test {
     useJUnitPlatform()
     finalizedBy jacocoTestReport
 }
+
 def props = new Properties()
 def file = file("github.properties")
 if (file.exists())
     file.withInputStream { props.load(it) }
+
+
 
 // Attempts to read the GPR user from local
 // project properties and then system environment variables.
@@ -62,8 +76,10 @@ static def getGprKey(props) {
     }
 }
 
+
 def user = getGprUser(props)
 def key = getGprKey(props)
+
 publishing {
 
     repositories {
@@ -96,4 +112,4 @@ publishing {
     }
 }
 
-
+apply from : 'bintray.gradle'

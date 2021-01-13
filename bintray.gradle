@@ -1,0 +1,34 @@
+version = project.findProperty('version')
+
+sourceSets {
+    main.kotlin.srcDirs += 'src/main/mapper'
+}
+
+def properties = new Properties()
+if (rootProject.file("local.properties").exists())
+    properties.load(rootProject.file("local.properties").newDataInputStream())
+
+def getBintrayUser(props) {
+    return props.getProperty("bintray.user")?:System.getenv("GPR_KEY")
+}
+def getBintrayKey(props) {
+    return props.getProperty("bintray.key")?:System.getenv("BINTRAY_KEY")
+}
+
+// Bintray
+bintray {
+    user = getBintrayUser(properties)
+    key = getBintrayKey(properties)
+    publications = ['mavenJava']
+
+    pkg {
+        repo = 'KotlinMapster'
+        name = 'com.dali.hamza.KotlinMapster'
+        configurations = ['archives']
+        desc = 'Fun & easily way to map from object to another.'
+        websiteUrl = 'https://github.com/liodali/KotlinMapster.git'
+        licenses = ["Apache-2.0"]
+        publish = true
+        publicDownloadNumbers = true
+    }
+}
