@@ -11,12 +11,12 @@ sourceSets {
 }
 
 group 'dali.hamza'
-version '0.2.0'
+version '0.2.1'
 
 sourceCompatibility = 1.8
 configure([compileKotlin, compileTestKotlin]) {
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "$sourceCompatibility"
     }
 }
 
