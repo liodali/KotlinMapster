@@ -45,3 +45,7 @@ val persons = listOf(Person("lorem@email.com", "person", "person",), Person("lor
 
 val dtos = persons.adaptListTo(PersonDTO::class)
 ```
+
+###PS
+* To create Github personal token follow this link and also you need to choose `read:packages` :
+  * https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token
