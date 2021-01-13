@@ -14,9 +14,7 @@ fun <T : Any, R : Any> T.adaptTo(dest: KClass<R>): R {
             var v = field.get(this)
             if ((p.type.classifier as KClass<*>).isData) {
                 v = v!!.adaptTo(
-                    dest.memberProperties
-                        .find { it.name == field.name }!!
-                        .returnType.classifier as KClass<*>
+                    p.type.classifier as KClass<*>
                 )
             } else {
                 if ((p.type.classifier as KClass<*>).superclasses.contains(Collection::class)) {
