@@ -5,6 +5,7 @@
 * Nested mapping
 * Array & List mapping
 
+
 `version : 0.3.0`
 
 ### Gradle Installation
@@ -50,6 +51,7 @@ val persons = listOf(Person("lorem@email.com", "person", "person",), Person("lor
 
 val dtos = persons.adaptListTo(PersonDTO::class)
 ```
+
 
 ### Advanced Examples
 
@@ -100,6 +102,7 @@ Attribute     | description |
 `destAtt`     | (String) name of attribute destination         | 
 `separator`   | (String) separator between the combined values       | 
 `index`       | (Int)  position in final result       | 
+
 
 ### PS
 

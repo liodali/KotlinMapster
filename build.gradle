@@ -24,6 +24,7 @@ sourceSets {
 group 'dali.hamza'
 version rootProject.getProperties()["version"]?:System.getenv("VERSION")
 
+
 sourceCompatibility = 1.8
 configure([compileKotlin, compileTestKotlin]) {
     kotlinOptions {
