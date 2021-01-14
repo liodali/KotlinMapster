@@ -97,7 +97,7 @@ private inline fun <reified T : Annotation> Any.findAllAnnotationsField(): Pair<
             val annotation = prop.findAnnotation<T>()
             if (annotation != null) {
                 fieldsAnnotations.add(prop as KProperty1<Any, *>)
-                fieldsValues[prop.name] = prop.get(prop)!!
+                fieldsValues[prop.name] = prop.get(this)!!
             }
         }
     }
