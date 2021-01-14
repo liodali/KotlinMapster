@@ -5,7 +5,8 @@
 * Nested mapping
 * Array & List mapping
 
-`version : 0.2.1`
+
+`version : 0.3.0`
 
 ### Gradle Installation
 
@@ -50,6 +51,58 @@ val persons = listOf(Person("lorem@email.com", "person", "person",), Person("lor
 
 val dtos = persons.adaptListTo(PersonDTO::class)
 ```
+
+
+### Advanced Examples
+
+* use `MapTo` annotation to map from an attribute to another with difference name
+
+```kotlin
+data class Person(@MapTo("login") val email: String, val password: String, val firstName: String, val adr: Address)
+
+data class LoginUser(val login: String, val password: String)
+
+val login = person.adaptTo(LoginUser::class)
+
+
+```
+### Properties `MapTo`
+
+Attribute     | description | 
+--------------| ------------|
+`destAttName` | (String) name of attribute destination         | 
+
+<br>
+
+-------------------------
+<br>
+
+* use `CombineTo` annotation to combine attributes to another with difference name
+
+```kotlin
+data class User(
+    @CombineTo(destAtt = "fullName", index = 0) val firstName: String,
+    @CombineTo(destAtt = "fullName", index = 1) val lastName: String,
+    val CIN: String
+)
+
+data class UserDTO(
+    val fullName: String,
+    val CIN: String
+)
+
+val dto = user.adaptTo(UserDTO::class)
+
+```
+### Properties `CombineTo`
+
+-------------------------
+Attribute     | description | 
+--------------| ------------|
+`destAtt`     | (String) name of attribute destination         | 
+`separator`   | (String) separator between the combined values       | 
+`index`       | (Int)  position in final result       | 
+
 
 ### PS
 
