@@ -22,7 +22,7 @@ sourceSets {
 }
 
 group 'dali.hamza'
-version '0.2.1'
+version rootProject.getProperties()["version"]
 
 sourceCompatibility = 1.8
 configure([compileKotlin, compileTestKotlin]) {
