@@ -77,8 +77,53 @@ class AnnotationAdapt {
             CIN = "0000"
         )
         val manuallyDTO = user.toDTO()
-        val dyo = user.adaptTo(UserDTO::class)
+        val dto = user.adaptTo(UserDTO::class)
 
-        assert(manuallyDTO == dyo)
+        assert(manuallyDTO == dto)
+    }
+
+    @Test
+    fun testNestedCombineToAnnotation() {
+        val faker = Faker()
+
+        data class User(
+            @CombineTo(destAtt = "username", index = 0) val firstName: String,
+            @CombineTo(destAtt = "username", index = 1) val lastName: String,
+            val CIN: String
+        )
+
+        data class Account(
+            val id: Int,
+            val user: User,
+            val email: String
+        )
+
+        data class AccountDTO(
+            val id: Int,
+            val username: String,
+            val email: String
+        )
+
+        fun Account.toDTO(): AccountDTO {
+            return AccountDTO(
+                username = "${this.user.firstName} ${this.user.lastName}",
+                id = this.id,
+                email = this.email
+            )
+        }
+
+        val account = Account(
+            user = User(
+                CIN = "0000",
+                firstName = faker.name.firstName(),
+                lastName = faker.name.lastName()
+            ),
+            email = faker.internet.email(),
+            id = 1
+        )
+        val manuallyDTO = account.toDTO()
+        val dto = account.adaptTo(AccountDTO::class)
+
+        assert(manuallyDTO == dto)
     }
 }
