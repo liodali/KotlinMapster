@@ -14,7 +14,7 @@ jobs:
         run: echo ::set-output name=tag::${GITHUB_REF#refs/*/}
       - uses: actions/setup-java@v1
         with:
-            java-version: 1.8
+          java-version: 1.8
       - uses: fwilhe2/setup-kotlin@main
       - name: gradle wrapper --gradle-version 6.7 --distribution-type all
         run: gradle wrapper
@@ -30,14 +30,17 @@ jobs:
           GPR_USER: ${{ secrets.GPR_USER }}
           GPR_KEY: ${{ secrets.GPR_KEY }}
           VERSION: ${{ steps.vars.outputs.tag }}
+        continue-on-error: true
       - name: publish tp bintray jcenter
         run: ./github bintrayUpload
         env:
           GPR_USER: ${{ secrets.GPR_USER }}
           GPR_KEY: ${{ secrets.BINTRAY_KEY }}
+        continue-on-error: true
       - name: Create a Release JAR
         uses: ncipollo/release-action@v1
         with:
           artifacts: build/libs/*.jar
           commit: ${{ github.sha }}
           token: ${{ secrets.COMMIT_TOKEN }}
+        continue-on-error: true
