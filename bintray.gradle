@@ -1,8 +1,5 @@
 version = project.findProperty('version')
 
-sourceSets {
-    main.kotlin.srcDirs += 'src/main/mapper'
-}
 
 def properties = new Properties()
 if (rootProject.file("local.properties").exists())
@@ -28,7 +25,7 @@ bintray {
         desc = 'Fun & easily way to map from object to another.'
         websiteUrl = 'https://github.com/liodali/KotlinMapster.git'
         licenses = ["Apache-2.0"]
-        publish = true
         publicDownloadNumbers = true
     }
+    publish = true
 }

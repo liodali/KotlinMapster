@@ -40,7 +40,6 @@ fun <T : Any, R : Any> T.adaptTo(dest: KClass<R>): R {
                 } else {
                     field!!.get(this)
                 }
-
             } else {
                 if ((p.type.classifier as KClass<*>).jvmName == "java.lang.String") {
 

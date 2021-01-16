@@ -9,3 +9,4 @@ gradle.properties
 /.gitignore
 /tagManager.sh
 /local.properties
+/*.patch

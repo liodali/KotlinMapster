@@ -18,7 +18,7 @@ plugins {
 
 
 sourceSets {
-    main.kotlin.srcDirs += 'src/main/mapper'
+    main.kotlin.srcDirs += 'src/main/kotlin'
 }
 
 group 'dali.hamza'
