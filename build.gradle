@@ -51,6 +51,13 @@ test {
     finalizedBy jacocoTestReport
 }
 
+task sourcesJar(type: Jar) {
+    classifier('sources')
+    from sourceSets.main.allSource
+}
+artifacts {
+    archives sourcesJar
+}
 def props = new Properties()
 def file = file("github.properties")
 if (file.exists())
