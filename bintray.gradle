@@ -6,10 +6,11 @@ if (rootProject.file("local.properties").exists())
     properties.load(rootProject.file("local.properties").newDataInputStream())
 
 def getBintrayUser(props) {
-    return props.getProperty("bintray.user")?:System.getenv("GPR_KEY")
+    return props.getProperty("bintray.user") ?: System.getenv("GPR_KEY")
 }
+
 def getBintrayKey(props) {
-    return props.getProperty("bintray.key")?:System.getenv("BINTRAY_KEY")
+    return props.getProperty("bintray.key") ?: System.getenv("BINTRAY_KEY")
 }
 
 // Bintray
@@ -24,8 +25,13 @@ bintray {
         configurations = ['archives']
         desc = 'Fun & easily way to map from object to another.'
         websiteUrl = 'https://github.com/liodali/KotlinMapster.git'
+        vcsUrl = 'https://github.com/liodali/KotlinMapster.git'
         licenses = ["Apache-2.0"]
         publicDownloadNumbers = true
+        version {
+            name = rootProject.getProperties()["version"] ?: System.getenv("VERSION")
+            vcsTag = rootProject.getProperties()["version"]?:System.getenv("VERSION")
+        }
     }
     publish = true
 }
