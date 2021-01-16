@@ -17,24 +17,29 @@ import mapper.annotations.MapTo
 // / [dest] : class type of destination object
 fun <T : Any, R : Any> T.adaptTo(dest: KClass<R>): R {
     if (dest.isData) {
-        val (fieldsAnnotations, fieldsValues) = this.findAllAnnotationsField<CombineTo>()
+        val (fieldsAnnotationsCombineTo, combineToFieldsValues) = this.findAllAnnotationsField<CombineTo>()
+        val (fieldsAnnotationsMapTo, mapToFieldsValues) = this.findAllAnnotationsField<MapTo>()
         val argsValues = dest.primaryConstructor!!.parameters.map { p ->
 
-            val fields = fieldsAnnotations.filter { props ->
+            val fields = fieldsAnnotationsCombineTo.filter { props ->
                 val annotation = props.findAnnotation<CombineTo>()
                 (annotation as CombineTo).destAtt == p.name
             }
 
             var v = if (fields.isEmpty()) {
-                val field = (this::class as KClass<Any>).declaredMemberProperties.first {
+                val field = fieldsAnnotationsMapTo.firstOrNull {
                     var name = it.name
                     val mapTo = it.findAnnotation<MapTo>()
                     if (mapTo != null) {
                         name = mapTo.destAttName
                     }
                     p.name.equals(name)
+                } ?: (this::class as KClass<Any>).declaredMemberProperties.first { it.name == p.name }
+                if (mapToFieldsValues.containsKey(field.name)) {
+                    mapToFieldsValues[field.name]
+                } else {
+                    field!!.get(this)
                 }
-                field.get(this)
             } else {
                 if ((p.type.classifier as KClass<*>).jvmName == "java.lang.String") {
 
@@ -42,9 +47,9 @@ fun <T : Any, R : Any> T.adaptTo(dest: KClass<R>): R {
                         it.findAnnotation<CombineTo>()!!.index
                     }.fold("") { acc, prop ->
                         if (acc.isNotEmpty())
-                            "$acc${prop.findAnnotation<CombineTo>()!!.separator}${fieldsValues[prop.name]}"
+                            "$acc${prop.findAnnotation<CombineTo>()!!.separator}${combineToFieldsValues[prop.name]}"
                         else
-                            "${fieldsValues[prop.name]}"
+                            "${combineToFieldsValues[prop.name]}"
                     }
                 } else {
                     throw IllegalStateException("Annotation CombineTo supported only with String type")
@@ -64,7 +69,7 @@ fun <T : Any, R : Any> T.adaptTo(dest: KClass<R>): R {
             }
             v
         }.toTypedArray()
-        fieldsValues.clear()
+        combineToFieldsValues.clear()
         return dest.primaryConstructor!!.call(*argsValues)
     }
     throw UnSupportedMappingType
