@@ -32,7 +32,7 @@ jobs:
           VERSION: ${{ steps.vars.outputs.tag }}
         continue-on-error: true
       - name: publish tp bintray jcenter
-        run: ./github bintrayUpload
+        run: ./gradlew bintrayUpload
         env:
           GPR_USER: ${{ secrets.GPR_USER }}
           GPR_KEY: ${{ secrets.BINTRAY_KEY }}
