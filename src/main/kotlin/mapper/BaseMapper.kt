@@ -2,17 +2,6 @@ package mapper
 
 import kotlin.reflect.KClass
 
-/*inline fun <reified T : Any> BaseMapper.ignoreIf(crossinline expression: Expression<T>): BaseMapper {
-    val base = this
-    if (T::class.simpleName == this.src.simpleName) {
-        base.configMapper.apply {
-            this.ignoreIf {
-                expression(it as T)
-            }
-        }
-    }
-    return base
-}*/
 
 fun BaseMapper<*, *>.ignore(srcAttribute: String): BaseMapper<*, *> {
     val base = this
