@@ -50,9 +50,15 @@ test {
     useJUnitPlatform()
     finalizedBy jacocoTestReport
 }
-
+jacocoTestReport {
+    // Adjust the output of the test report
+    reports {
+        xml.enabled true
+        csv.enabled true
+    }
+}
 task sourcesJar(type: Jar) {
-    classifier('sources')
+    classifier('source')
     from sourceSets.main.allSource
 }
 artifacts {
