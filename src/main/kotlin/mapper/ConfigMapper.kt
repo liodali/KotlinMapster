@@ -39,6 +39,12 @@ class ConfigMapper<T : Any, R : Any> {
     }
 
     fun transformation(srcAttribute: String, expression: TransformationExpression<T>): ConfigMapper<T, R> {
+        if (listIgnoredAtt.contains(srcAttribute) || listIgnoredExpression.firstOrNull {
+                it.first == srcAttribute
+            } != null) {
+            println("Unnecessary transformation for ignore field")
+            return this
+        }
         val pairExist = listTransformationExpression.firstOrNull {
             it.first == srcAttribute
         }
