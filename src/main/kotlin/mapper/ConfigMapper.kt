@@ -4,23 +4,22 @@ typealias ConditionalIgnore<T> = (src: T) -> Boolean
 
 class ConfigMapper<T : Any, R : Any> {
 
-    private val listIgnoredAtt: MutableList<String>
-        get() = emptyList<String>().toMutableList()
-
-    internal val listIgnoredExpression: MutableList<ConditionalIgnore<T>>
-        get() = emptyList<ConditionalIgnore<T>>().toMutableList()
+    internal val listIgnoredAtt: MutableList<String> = emptyList<String>().toMutableList()
+    internal val listIgnoredExpression: MutableList<Pair<String, ConditionalIgnore<T>>> =
+        emptyList<Pair<String, ConditionalIgnore<T>>>().toMutableList()
 
     fun ignoreAtt(srcAtt: String): ConfigMapper<T, R> {
         if (!listIgnoredAtt.contains(srcAtt))
-            listIgnoredAtt.add(srcAtt)
-
+            this.listIgnoredAtt.add(srcAtt)
         return this
     }
 
-    fun ignoreIf(expression: ConditionalIgnore<T>): ConfigMapper<T, R> {
-
-        listIgnoredExpression.add(expression)
-
+    fun ignoreIf(srcAttribute: String, expression: ConditionalIgnore<T>): ConfigMapper<T, R> {
+        val pairExist = listIgnoredExpression.firstOrNull {
+            it.first == srcAttribute
+        }
+        if (pairExist == null)
+            listIgnoredExpression.add(Pair(srcAttribute, expression))
         return this
     }
 }
