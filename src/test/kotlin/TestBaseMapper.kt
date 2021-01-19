@@ -44,5 +44,19 @@ class TestBaseMapper {
         assert(dtoUser1 == UserDTO(name, null))
 
     }
+    @Test
+    fun baseTransformationTest() {
+        data class User(val name: String, val team: String)
+        data class UserDTO(val name: String?, val team: String?)
 
+        val name = faker.name.firstName()
+        val user = User(name, team = "FCBARCELONA")
+
+        val mapper = BaseMapper.from(user).to(UserDTO::class)
+            .transformation("team") {
+                it.team.subSequence(0, 3)
+            }
+        val dto = mapper.adapt()
+        assert(dto == UserDTO(name, "FCB"))
+    }
 }
