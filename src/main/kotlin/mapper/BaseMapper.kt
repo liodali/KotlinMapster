@@ -36,14 +36,13 @@ inline fun <T : Any> BaseMapper<T, *>.transformation(
 
 inline fun <T, R> BaseMapper<T, R>.ignoreIf(
     srcAttribute: String,
-    crossinline expression: Expression<T>
+    crossinline expression: ConditionalIgnore<T>
 ): BaseMapper<T, R> {
     val base = this
     val config = base.configMapper.ignoreIf(srcAttribute) {
         expression(it as T)
     }
-    base.configMapper = config
-    return base
+    return base.newConfig(config) as BaseMapper<T, R>
 }
 
 private fun <T : Any> T.mapping(
@@ -89,23 +88,18 @@ private fun <T : Any> T.mapping(
     return dest.primaryConstructor!!.call(*fieldsArgs)
 }
 
-class BaseMapper<T, R> : IMapper<T, R> {
-    constructor() {
-        sourceData = null
-    }
+class BaseMapper<T, R> private constructor(source: T) : IMapper<T, R> {
 
-    private constructor(s: T) {
-        sourceData = s
-    }
 
     lateinit var dest: KClass<*>
         private set
     lateinit var src: KClass<*>
         private set
 
-    var sourceData: T? = null
-    var configMapper: ConfigMapper<*, *> = ConfigMapper<Any, Any>()
-
+    var sourceData: T? = source
+        private set
+      var configMapper: ConfigMapper<*, *> = ConfigMapper<Any, Any>()
+          private set
     companion object {
         private lateinit var instance: BaseMapper<*, *>
         fun <T> from(source: T): BaseMapper<T, *> where T : Any {
@@ -113,14 +107,11 @@ class BaseMapper<T, R> : IMapper<T, R> {
             instance.configMapper = ConfigMapper<T, Any>()
             return instance.from(source::class) as BaseMapper<T, *>
         }
-
-        fun <T, R> newConfig(configMapper: ConfigMapper<T, R>): BaseMapper<T, R> where T : Any, R : Any {
-            instance = BaseMapper<T, R>()
-            instance.configMapper = ConfigMapper<T, R>()
-            return instance as BaseMapper<T, R>
-        }
     }
-
+    fun <T, R> newConfig(configMapper: ConfigMapper<T, R>): BaseMapper<T, R> where T : Any, R : Any {
+        instance.configMapper = configMapper
+        return instance as BaseMapper<T, R>
+    }
     fun adapt(source: T? = null): R {
         if (dest == null || src == null) {
             throw IllegalArgumentException("you cannot map from/to undefined object")
@@ -129,6 +120,9 @@ class BaseMapper<T, R> : IMapper<T, R> {
             throw IllegalArgumentException("you cannot map from null object")
         } else {
             if (source != null) {
+                if ((source!!)::class.simpleName != src.simpleName) {
+                    throw IllegalArgumentException("difference source object")
+                }
                 sourceData = source
             }
         }

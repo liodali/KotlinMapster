@@ -2,7 +2,6 @@ package mapper
 
 import kotlin.reflect.KClass
 
-internal typealias Expression<T> = (src: T) -> Boolean
 
 inline fun <reified R : Any, T : Any> IMapper<T, R>.adapt(src: T?): R {
     if (this is BaseMapper) {
