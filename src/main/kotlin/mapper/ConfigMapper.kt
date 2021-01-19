@@ -23,6 +23,10 @@ class ConfigMapper<T : Any, R : Any> {
     internal val listTransformationExpression: MutableList<Pair<String, TransformationExpression<T>>> =
         emptyList<Pair<String, TransformationExpression<T>>>().toMutableList()
 
+    fun hasConfiguration(): Boolean = this.listIgnoredExpression.isNotEmpty()
+            || this.listIgnoredAtt.isNotEmpty() || this.listTransformationExpression.isNotEmpty()
+
+
     fun ignoreAtt(srcAtt: String): ConfigMapper<T, R> {
         if (!listIgnoredAtt.contains(srcAtt))
             this.listIgnoredAtt.add(srcAtt)
@@ -37,6 +41,7 @@ class ConfigMapper<T : Any, R : Any> {
             listIgnoredExpression.add(Pair(srcAttribute, expression))
         return this
     }
+
 
     fun transformation(srcAttribute: String, expression: TransformationExpression<T>): ConfigMapper<T, R> {
         if (listIgnoredAtt.contains(srcAttribute) || listIgnoredExpression.firstOrNull {
