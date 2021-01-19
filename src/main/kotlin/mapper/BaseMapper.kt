@@ -5,11 +5,18 @@ import kotlin.reflect.KClass
 import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.full.primaryConstructor
 
-
-fun BaseMapper<*, *>.ignore(srcAttribute: String): BaseMapper<*, *> {
+fun <T : Any, R : Any> BaseMapper<T, R>.ignore(srcAttribute: String): BaseMapper<T, R> {
     val base = this
     base.configMapper.apply {
         this.ignoreAtt(srcAttribute)
+    }
+    return base
+}
+
+fun <T : Any, R : Any> BaseMapper<T, R>.mapTo(srcAttribute: String, destAttribute: String): BaseMapper<T, R> {
+    val base = this
+    base.configMapper.apply {
+        this.map(srcAttribute, destAttribute)
     }
     return base
 }
@@ -45,18 +52,23 @@ private fun <T : Any> T.mapping(
 ): Any {
     val listExpressions: List<Pair<String, ConditionalIgnore<T>>> =
         configMapper.listIgnoredExpression as List<Pair<String, ConditionalIgnore<T>>>
-    val listAtt: List<String> = configMapper.listIgnoredAtt
+    val listAtt: List<String> = configMapper.listIgnoredAttribute
+    val listMappedAtt: List<Pair<String, String>> = configMapper.listMappedAttributes
     val listTransformations =
         configMapper.listTransformationExpression as List<Pair<String, TransformationExpression<T>>>
 
     val fieldsArgs = dest.primaryConstructor!!.parameters.map { kProp ->
+        val nameMapper: String? = listMappedAtt.firstOrNull { m ->
+            m.second == kProp.name
+        }?.first
         val field = (this::class as KClass<Any>).declaredMemberProperties.first {
-            it.name == kProp.name
+            val name = nameMapper ?: kProp.name
+            it.name == name
         }
         var v: Any? = field.get(this)
         val isIgnore = listExpressions.map {
             !it.second(this) && field.name == it.first
-        }.firstOrNull { it } != null || listAtt.contains(kProp.name)
+        }.firstOrNull { it } != null || listAtt.contains(field.name)
         if (isIgnore) {
             if (kProp.type.isMarkedNullable) {
                 v = null
@@ -65,7 +77,7 @@ private fun <T : Any> T.mapping(
         } else {
             if (listTransformations.isNotEmpty()) {
                 v = listTransformations.firstOrNull {
-                    it.first == kProp.name
+                    it.first == field.name
                 }?.let {
                     val newValue = it.second(this)
                     newValue
@@ -136,4 +148,3 @@ class BaseMapper<T, R> : IMapper<T, R> {
         return this as BaseMapper<T, R>
     }
 }
-
