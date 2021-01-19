@@ -17,19 +17,20 @@ typealias TransformationExpression<T> = (src: T) -> Any
  */
 class ConfigMapper<T : Any, R : Any> {
 
-    internal val listIgnoredAtt: MutableList<String> = emptyList<String>().toMutableList()
+    internal val listIgnoredAttribute: MutableList<String> = emptyList<String>().toMutableList()
+    internal val listMappedAttributes: MutableList<Pair<String, String>> =
+        emptyList<Pair<String, String>>().toMutableList()
     internal val listIgnoredExpression: MutableList<Pair<String, ConditionalIgnore<T>>> =
         emptyList<Pair<String, ConditionalIgnore<T>>>().toMutableList()
     internal val listTransformationExpression: MutableList<Pair<String, TransformationExpression<T>>> =
         emptyList<Pair<String, TransformationExpression<T>>>().toMutableList()
 
-    fun hasConfiguration(): Boolean = this.listIgnoredExpression.isNotEmpty()
-            || this.listIgnoredAtt.isNotEmpty() || this.listTransformationExpression.isNotEmpty()
-
+    fun hasConfiguration(): Boolean = this.listIgnoredExpression.isNotEmpty() ||
+            this.listIgnoredAttribute.isNotEmpty() || this.listTransformationExpression.isNotEmpty()
 
     fun ignoreAtt(srcAtt: String): ConfigMapper<T, R> {
-        if (!listIgnoredAtt.contains(srcAtt))
-            this.listIgnoredAtt.add(srcAtt)
+        if (!listIgnoredAttribute.contains(srcAtt))
+            this.listIgnoredAttribute.add(srcAtt)
         return this
     }
 
@@ -42,9 +43,8 @@ class ConfigMapper<T : Any, R : Any> {
         return this
     }
 
-
     fun transformation(srcAttribute: String, expression: TransformationExpression<T>): ConfigMapper<T, R> {
-        if (listIgnoredAtt.contains(srcAttribute) || listIgnoredExpression.firstOrNull {
+        if (listIgnoredAttribute.contains(srcAttribute) || listIgnoredExpression.firstOrNull {
                 it.first == srcAttribute
             } != null) {
             println("Unnecessary transformation for ignore field")
@@ -55,6 +55,17 @@ class ConfigMapper<T : Any, R : Any> {
         }
         if (pairExist == null)
             listTransformationExpression.add(Pair(srcAttribute, expression))
+        return this
+    }
+
+    fun map(srcAttribute: String, destAttribute: String): ConfigMapper<T, R> {
+        if (listMappedAttributes.firstOrNull {
+                it.first == srcAttribute
+            } != null) {
+            throw IllegalArgumentException("cannot map $srcAttribute to multiple destination field")
+        }
+
+        listMappedAttributes.add(Pair(srcAttribute, destAttribute))
         return this
     }
 }
