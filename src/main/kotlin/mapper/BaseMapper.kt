@@ -14,6 +14,19 @@ fun BaseMapper<*, *>.ignore(srcAttribute: String): BaseMapper<*, *> {
     return base
 }
 
+inline fun <T : Any> BaseMapper<T, *>.transformation(
+    srcAttribute: String,
+    crossinline transformation: TransformationExpression<T>
+): BaseMapper<*, *> {
+    val base = this
+    base.configMapper.apply {
+        this.transformation(srcAttribute) {
+            transformation(it as T)
+        }
+    }
+    return base
+}
+
 inline fun <T, R> BaseMapper<T, R>.ignoreIf(
     srcAttribute: String,
     crossinline expression: Expression<T>
@@ -33,6 +46,8 @@ private fun <T : Any> T.mapping(
     val listExpressions: List<Pair<String, ConditionalIgnore<T>>> =
         configMapper.listIgnoredExpression as List<Pair<String, ConditionalIgnore<T>>>
     val listAtt: List<String> = configMapper.listIgnoredAtt
+    val listTransformations =
+        configMapper.listTransformationExpression as List<Pair<String, TransformationExpression<T>>>
 
     val fieldsArgs = dest.primaryConstructor!!.parameters.map { kProp ->
         val field = (this::class as KClass<Any>).declaredMemberProperties.first {
@@ -47,6 +62,15 @@ private fun <T : Any> T.mapping(
                 v = null
             } else
                 throw IllegalArgumentException("you cannot ignore non nullable field")
+        } else {
+            if (listTransformations.isNotEmpty()) {
+                v = listTransformations.firstOrNull {
+                    it.first == kProp.name
+                }?.let {
+                    val newValue = it.second(this)
+                    newValue
+                } ?: v
+            }
         }
         v
     }.toTypedArray()
@@ -96,9 +120,7 @@ class BaseMapper<T, R> : IMapper<T, R> {
                 sourceData = source
             }
         }
-        if (configMapper.listIgnoredExpression.isNotEmpty()
-            || configMapper.listIgnoredAtt.isNotEmpty()
-        ) {
+        if (configMapper.hasConfiguration()) {
             return sourceData!!.mapping(dest, configMapper) as R
         }
         return sourceData!!.adaptTo(dest) as R
@@ -114,3 +136,4 @@ class BaseMapper<T, R> : IMapper<T, R> {
         return this as BaseMapper<T, R>
     }
 }
+
