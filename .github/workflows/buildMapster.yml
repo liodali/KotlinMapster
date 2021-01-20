@@ -10,8 +10,6 @@ jobs:
     name: deploy release
     steps:
       - uses: actions/checkout@v2
-      - name: set ref as env
-        run: echo ::set-output name=tag::${GITHUB_REF#refs/*/}
       - uses: actions/setup-java@v1
         with:
           java-version: 1.8
@@ -29,7 +27,6 @@ jobs:
         env:
           GPR_USER: ${{ secrets.GPR_USER }}
           GPR_KEY: ${{ secrets.GPR_KEY }}
-          VERSION: ${{ steps.vars.outputs.tag }}
         continue-on-error: true
       - name: publish tp bintray jcenter
         run: ./gradlew bintrayUpload
