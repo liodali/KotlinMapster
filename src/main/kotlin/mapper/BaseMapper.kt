@@ -90,7 +90,6 @@ private fun <T : Any> T.mapping(
 
 class BaseMapper<T, R> private constructor(source: T) : IMapper<T, R> {
 
-
     lateinit var dest: KClass<*>
         private set
     lateinit var src: KClass<*>
@@ -98,8 +97,9 @@ class BaseMapper<T, R> private constructor(source: T) : IMapper<T, R> {
 
     var sourceData: T? = source
         private set
-      var configMapper: ConfigMapper<*, *> = ConfigMapper<Any, Any>()
-          private set
+    var configMapper: ConfigMapper<*, *> = ConfigMapper<Any, Any>()
+        private set
+
     companion object {
         private lateinit var instance: BaseMapper<*, *>
         fun <T> from(source: T): BaseMapper<T, *> where T : Any {
@@ -108,10 +108,12 @@ class BaseMapper<T, R> private constructor(source: T) : IMapper<T, R> {
             return instance.from(source::class) as BaseMapper<T, *>
         }
     }
+
     fun <T, R> newConfig(configMapper: ConfigMapper<T, R>): BaseMapper<T, R> where T : Any, R : Any {
         instance.configMapper = configMapper
         return instance as BaseMapper<T, R>
     }
+
     fun adapt(source: T? = null): R {
         if (dest == null || src == null) {
             throw IllegalArgumentException("you cannot map from/to undefined object")

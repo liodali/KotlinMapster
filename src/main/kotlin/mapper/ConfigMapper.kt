@@ -26,7 +26,7 @@ class ConfigMapper<T : Any, R : Any> {
         emptyList<Pair<String, TransformationExpression<T>>>().toMutableList()
 
     fun hasConfiguration(): Boolean = this.listIgnoredExpression.isNotEmpty() ||
-            this.listIgnoredAttribute.isNotEmpty() || this.listTransformationExpression.isNotEmpty()
+            this.listIgnoredAttribute.isNotEmpty() || this.listTransformationExpression.isNotEmpty() || this.listMappedAttributes.isNotEmpty()
 
     fun ignoreAtt(srcAtt: String): ConfigMapper<T, R> {
         if (!listIgnoredAttribute.contains(srcAtt))
