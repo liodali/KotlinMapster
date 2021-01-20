@@ -1,12 +1,10 @@
 import io.github.serpro69.kfaker.Faker
-import mapper.BaseMapper
-import mapper.ignore
-import mapper.ignoreIf
-import mapper.transformation
+import mapper.*
 import org.junit.jupiter.api.Test
+import java.security.MessageDigest
 
 class TestBaseMapper {
-    val faker = Faker()
+    private val faker = Faker()
 
     @Test
     fun baseTest() {
@@ -42,8 +40,8 @@ class TestBaseMapper {
         mapper.ignore("password")
         val dtoUser1 = mapper.adapt(user1)
         assert(dtoUser1 == UserDTO(name, null))
-
     }
+
     @Test
     fun baseTransformationTest() {
         data class User(val name: String, val team: String)
@@ -58,5 +56,41 @@ class TestBaseMapper {
             }
         val dto = mapper.adapt()
         assert(dto == UserDTO(name, "FCB"))
+    }
+
+    @Test
+    fun baseTestMap() {
+        data class User(val name: String, val email: String, val password: String, val country: String)
+        data class LoginDTO(val login: String?, val password: String?)
+        /*
+         * data preparation
+         */
+        val name = faker.name.firstName()
+        val email = faker.internet.email()
+        val country = faker.address.country()
+        val user = User(name, email, "1234", country)
+        val hashPwd = hashPassword(user.password)
+        /*
+         * BaseMapper builder with mapTo and transformation
+         */
+        val mapper = BaseMapper.from(user).to(LoginDTO::class)
+            .mapTo("email", "login")
+            .transformation("password") {
+                hashPassword(it.password)
+            }
+        val dto = mapper.adapt()
+        assert(dto == LoginDTO(email, hashPwd))
+    }
+
+    private fun hashPassword(password: String): String {
+        val hex = "0123456789ABCDEF"
+        val bytes = MessageDigest.getInstance("MD5").digest(password.toByteArray())
+        val result = StringBuilder(bytes.size * 2)
+        bytes.forEach {
+            val i = it.toInt()
+            result.append(hex[i shr 4 and 0x0f])
+            result.append(hex[i and 0x0f])
+        }
+        return result.toString()
     }
 }
