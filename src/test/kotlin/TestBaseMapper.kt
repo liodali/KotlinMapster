@@ -1,7 +1,12 @@
 import io.github.serpro69.kfaker.Faker
-import mapper.*
-import org.junit.jupiter.api.Test
 import java.security.MessageDigest
+import mapper.BaseMapper
+import mapper.ConfigMapper
+import mapper.ignore
+import mapper.ignoreIf
+import mapper.mapTo
+import mapper.transformation
+import org.junit.jupiter.api.Test
 
 class TestBaseMapper {
     private val faker = Faker()
@@ -37,25 +42,27 @@ class TestBaseMapper {
         assert(dto == UserDTO(null, "1234"))
 
         val user1 = User(name, password = "1234")
-        mapper.ignore("password")
+        mapper.newConfig(ConfigMapper()).ignore("password")
         val dtoUser1 = mapper.adapt(user1)
         assert(dtoUser1 == UserDTO(name, null))
     }
 
     @Test
     fun baseTransformationTest() {
-        data class User(val name: String, val team: String)
-        data class UserDTO(val name: String?, val team: String?)
+        data class User(val name: String, val password: String)
+        data class UserDTO(val name: String?, val password: String?)
 
         val name = faker.name.firstName()
-        val user = User(name, team = "FCBARCELONA")
+
+        val user = User(name, password = "1234")
+        val hashPwd = hashPassword(user.password)
 
         val mapper = BaseMapper.from(user).to(UserDTO::class)
-            .transformation("team") {
-                it.team.subSequence(0, 3)
+            .transformation("password") {
+                hashPassword(it.password)
             }
         val dto = mapper.adapt()
-        assert(dto == UserDTO(name, "FCB"))
+        assert(dto == UserDTO(name, hashPwd))
     }
 
     @Test
@@ -69,17 +76,14 @@ class TestBaseMapper {
         val email = faker.internet.email()
         val country = faker.address.country()
         val user = User(name, email, "1234", country)
-        val hashPwd = hashPassword(user.password)
         /*
          * BaseMapper builder with mapTo and transformation
          */
         val mapper = BaseMapper.from(user).to(LoginDTO::class)
             .mapTo("email", "login")
-            .transformation("password") {
-                hashPassword(it.password)
-            }
+
         val dto = mapper.adapt()
-        assert(dto == LoginDTO(email, hashPwd))
+        assert(dto == LoginDTO(email, "1234"))
     }
 
     private fun hashPassword(password: String): String {

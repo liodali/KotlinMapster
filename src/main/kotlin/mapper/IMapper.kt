@@ -2,7 +2,6 @@ package mapper
 
 import kotlin.reflect.KClass
 
-
 inline fun <reified R : Any, T : Any> IMapper<T, R>.adapt(src: T?): R {
     if (this is BaseMapper) {
         return this.adapt(src)
