@@ -26,11 +26,8 @@ version buildVersion(rootProject)
 
 static def buildVersion(rootProject) {
     def gradleV = rootProject.getProperties()["version"]
-    def systemV = System.getenv("VERSION")
     if (rootProject.hasProperty("dev-version")) {
-        if (rootProject.getProperties()["dev-version"] == systemV) {
-            return systemV
-        }
+            return rootProject.getProperties()["dev-version"]
     }
     return gradleV
 }
