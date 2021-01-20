@@ -6,7 +6,6 @@
 * Array & List mapping
 
 `version : 0.3.1`
-
 `dev version : 0.4.0-alpha01`
 
 ### Gradle Installation
