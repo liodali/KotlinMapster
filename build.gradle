@@ -22,8 +22,18 @@ sourceSets {
 }
 
 group 'dali.hamza'
-version rootProject.getProperties()["version"]?:System.getenv("VERSION")
+version buildVersion(rootProject)
 
+static def buildVersion(rootProject) {
+    def gradleV = rootProject.getProperties()["version"]
+    def systemV = System.getenv("VERSION")
+    if (rootProject.hasProperty("dev-version")) {
+        if (rootProject.getProperties()["dev-version"] == systemV) {
+            return systemV
+        }
+    }
+    return gradleV
+}
 
 sourceCompatibility = 1.8
 configure([compileKotlin, compileTestKotlin]) {
@@ -68,7 +78,6 @@ def props = new Properties()
 def file = file("github.properties")
 if (file.exists())
     file.withInputStream { props.load(it) }
-
 
 
 // Attempts to read the GPR user from local
@@ -126,4 +135,4 @@ publishing {
     }
 }
 
-apply from : 'bintray.gradle'
+apply from: 'bintray.gradle'
