@@ -5,8 +5,9 @@
 * Nested mapping
 * Array & List mapping
 
-`version : 0.3.1`
-`dev version : 0.4.0-alpha01`
+`stable-version : 0.3.1`
+
+`dev-version : 0.4.0-alpha01`
 
 ### Gradle Installation
 
@@ -174,9 +175,9 @@ Attribute     | description |
   ```
     * Conditional Ignore Field :
 
-  > You can ignore Field Conditionally with condition base on source, when condition is met,the field that have the same name in destination object will be skipped.
+  > You can ignore Field Conditionally with condition base on source, when condition is met,the field that has the same name in destination object will be skipped.
 
-  > You can combine it with map to skip field that have different name in destination object.
+  > You can combine it with map to skip field that has different name in destination object.
 
   ```kotlin
     data class User(val name: String, val password: String)
@@ -192,7 +193,7 @@ Attribute     | description |
 
 ### Transformation :
 
-> you can compute new values using transformation,example hash the password enter by the user
+> you can compute new values using transformation,example hash the password entered by the user
 
 ```kotlin
   data class User(val name: String, val email: String, val password: String, val country: String)
@@ -218,15 +219,13 @@ Attribute     | description |
 
 ```kotlin
 
-  data class User(val name: String, val password: String)
-  data class UserDTO(val name: String?, val password: String?)
+data class User(val name: String, val email: String, val password: String, val country: String)
+data class LoginDTO(val login: String?, val password: String?)
   
-  val user = User(faker.name.firstName(), password = "1234")
+  val user = User(faker.name.firstName(), faker.internet.email(), password = "1234",faker.address.country())
   
   val mapper = BaseMapper.from(user).to(UserDTO::class)
-      .transformation("password") {
-          hashPassword(it.password)
-      }
+      .mapTo("email", "login")
   val dto = mapper.adapt()
 ```
 
