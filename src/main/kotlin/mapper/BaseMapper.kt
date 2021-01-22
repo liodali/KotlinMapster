@@ -49,6 +49,7 @@ private fun <T : Any> T.mapping(
     dest: KClass<*>,
     configMapper: ConfigMapper<*, *>
 ): Any {
+
     val listExpressions: List<Pair<String, ConditionalIgnore<T>>> =
         configMapper.listIgnoredExpression as List<Pair<String, ConditionalIgnore<T>>>
     val listAtt: List<String> = configMapper.listIgnoredAttribute
@@ -57,6 +58,7 @@ private fun <T : Any> T.mapping(
         configMapper.listTransformationExpression as List<Pair<String, TransformationExpression<T>>>
 
     val fieldsArgs = dest.primaryConstructor!!.parameters.map { kProp ->
+
         val nameMapper: String? = listMappedAtt.firstOrNull { m ->
             m.second == kProp.name
         }?.first
@@ -83,6 +85,11 @@ private fun <T : Any> T.mapping(
                 } ?: v
             }
         }
+        if ((kProp.type.classifier as KClass<*>).isData) {
+            v = v!!.mapping(kProp.type.classifier as KClass<*>, configMapper)
+        } /* else {
+             /// TODO support list mapping
+         }*/
         v
     }.toTypedArray()
     return dest.primaryConstructor!!.call(*fieldsArgs)
@@ -90,13 +97,10 @@ private fun <T : Any> T.mapping(
 
 class BaseMapper<T, R> private constructor(source: T) : IMapper<T, R> {
 
-    lateinit var dest: KClass<*>
-        private set
-    lateinit var src: KClass<*>
-        private set
+    private var dest: KClass<*>? = null
+    private lateinit var src: KClass<*>
 
-    var sourceData: T? = source
-        private set
+    private var sourceData: T? = source
     var configMapper: ConfigMapper<*, *> = ConfigMapper<Any, Any>()
         private set
 
@@ -115,8 +119,8 @@ class BaseMapper<T, R> private constructor(source: T) : IMapper<T, R> {
     }
 
     fun adapt(source: T? = null): R {
-        if (dest == null || src == null) {
-            throw IllegalArgumentException("you cannot map from/to undefined object")
+        if (dest == null) {
+            throw IllegalArgumentException("you cannot map to undefined object")
         }
         if (source == null && sourceData == null) {
             throw IllegalArgumentException("you cannot map from null object")
@@ -129,9 +133,9 @@ class BaseMapper<T, R> private constructor(source: T) : IMapper<T, R> {
             }
         }
         if (configMapper.hasConfiguration()) {
-            return sourceData!!.mapping(dest, configMapper) as R
+            return sourceData!!.mapping(dest!!, configMapper) as R
         }
-        return sourceData!!.adaptTo(dest) as R
+        return sourceData!!.adaptTo(dest!!) as R
     }
 
     override fun <R : Any> to(dest: KClass<R>): BaseMapper<T, R> {
