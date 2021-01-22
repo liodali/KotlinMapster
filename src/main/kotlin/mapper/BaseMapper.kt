@@ -85,9 +85,9 @@ private fun <T : Any> T.mapping(
                 } ?: v
             }
         }
-         if ((kProp.type.classifier as KClass<*>).isData) {
-             v = v!!.mapping(kProp.type.classifier as KClass<*>, configMapper)
-         }/* else {
+        if ((kProp.type.classifier as KClass<*>).isData) {
+            v = v!!.mapping(kProp.type.classifier as KClass<*>, configMapper)
+        } /* else {
              /// TODO support list mapping
          }*/
         v

@@ -98,10 +98,10 @@ class TestBaseMapper {
         val country = faker.address.country()
         val fullAdr = faker.address.fullAddress()
         val user = User(name, email, Address(country, fullAdr))
-        val mapper = BaseMapper.from(user).to(UserDTO::class).mapTo("email","login")
+        val mapper = BaseMapper.from(user).to(UserDTO::class).mapTo("email", "login")
         val dto = mapper.adapt()
 
-        assert(dto==UserDTO(email, AddressDTO(country, fullAdr)))
+        assert(dto == UserDTO(email, AddressDTO(country, fullAdr)))
     }
 
     private fun hashPassword(password: String): String {
@@ -115,6 +115,4 @@ class TestBaseMapper {
         }
         return result.toString()
     }
-
-
 }

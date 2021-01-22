@@ -6,7 +6,7 @@ if (rootProject.file("local.properties").exists())
     properties.load(rootProject.file("local.properties").newDataInputStream())
 
 def getBintrayUser(props) {
-    return props.getProperty("bintray.user") ?: System.getenv("GPR_KEY")
+    return props.getProperty("bintray.user") ?: System.getenv("GPR_USER")
 }
 
 def getBintrayKey(props) {
