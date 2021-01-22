@@ -86,6 +86,24 @@ class TestBaseMapper {
         assert(dto == LoginDTO(email, "1234"))
     }
 
+    @Test
+    fun testNestedMap() {
+        data class Address(val country: String, val fullAddress: String)
+        data class AddressDTO(val country: String, val fullAddress: String)
+        data class User(val name: String, val email: String, val adr: Address)
+        data class UserDTO(val login: String?, val adr: AddressDTO)
+
+        val name = faker.name.firstName()
+        val email = faker.internet.email()
+        val country = faker.address.country()
+        val fullAdr = faker.address.fullAddress()
+        val user = User(name, email, Address(country, fullAdr))
+        val mapper = BaseMapper.from(user).to(UserDTO::class).mapTo("email","login")
+        val dto = mapper.adapt()
+
+        assert(dto==UserDTO(email, AddressDTO(country, fullAdr)))
+    }
+
     private fun hashPassword(password: String): String {
         val hex = "0123456789ABCDEF"
         val bytes = MessageDigest.getInstance("MD5").digest(password.toByteArray())
@@ -97,4 +115,6 @@ class TestBaseMapper {
         }
         return result.toString()
     }
+
+
 }
