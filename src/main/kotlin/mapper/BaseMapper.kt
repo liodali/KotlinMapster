@@ -21,10 +21,10 @@ fun <T : Any, R : Any> BaseMapper<T, R>.mapTo(srcAttribute: String, destAttribut
     return base
 }
 
-inline fun <T : Any> BaseMapper<T, *>.transformation(
+inline fun <T : Any,R:Any> BaseMapper<T, R>.transformation(
     srcAttribute: String,
     crossinline transformation: TransformationExpression<T>
-): BaseMapper<*, *> {
+): BaseMapper<T, R> {
     val base = this
     base.configMapper.apply {
         this.transformation(srcAttribute) {
@@ -34,15 +34,15 @@ inline fun <T : Any> BaseMapper<T, *>.transformation(
     return base
 }
 
-inline fun <T, R> BaseMapper<T, R>.ignoreIf(
+inline fun <T:Any, R:Any> BaseMapper<T, R>.ignoreIf(
     srcAttribute: String,
     crossinline expression: ConditionalIgnore<T>
 ): BaseMapper<T, R> {
     val base = this
-    val config = base.configMapper.ignoreIf(srcAttribute) {
-        expression(it as T)
+     (base.configMapper as ConfigMapper<T,R>).ignoreIf(srcAttribute) {
+        expression(it)
     }
-    return base.newConfig(config) as BaseMapper<T, R>
+    return base
 }
 
 private fun <T : Any> T.mapping(
@@ -120,7 +120,7 @@ class BaseMapper<T, R> private constructor(source: T) : IMapper<T, R> {
 
     fun adapt(source: T? = null): R {
         if (dest == null) {
-            throw IllegalArgumentException("you cannot map to undefined object")
+            throw UndefinedDestinationObject
         }
         if (source == null && sourceData == null) {
             throw IllegalArgumentException("you cannot map from null object")
