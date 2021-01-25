@@ -106,10 +106,10 @@ class BaseMapper<T, R> private constructor(source: T) : IMapper<T, R> {
 
     companion object {
         private lateinit var instance: BaseMapper<*, *>
-        fun <T> from(source: T): BaseMapper<T, *> where T : Any {
+        fun <T> from(source: T): BaseMapper<T, Any> where T : Any {
             instance = BaseMapper<T, Any>(source)
             instance.configMapper = ConfigMapper<T, Any>()
-            return instance.from(source::class) as BaseMapper<T, *>
+            return instance.from(source::class) as BaseMapper<T, Any>
         }
     }
 
