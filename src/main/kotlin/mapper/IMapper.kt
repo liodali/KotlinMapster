@@ -13,5 +13,4 @@ inline fun <reified R : Any, T : Any> IMapper<T, R>.adapt(src: T?): R {
 interface IMapper<T, R> {
 
     fun <R : Any> to(dest: KClass<R>): IMapper<*, R>
-    fun <T : Any> from(src: KClass<T>): IMapper<T, *>
 }
