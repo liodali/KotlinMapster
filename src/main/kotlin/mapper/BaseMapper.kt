@@ -21,9 +21,9 @@ fun <T : Any, R : Any> BaseMapper<T, R>.mapTo(srcAttribute: String, destAttribut
     return base
 }
 
- fun < T : Any, R : Any> BaseMapper<T, R>.transformation(
+fun <T : Any, R : Any> BaseMapper<T, R>.transformation(
     srcAttribute: String,
-     transformation: TransformationExpression<T>
+    transformation: TransformationExpression<T>
 ): BaseMapper<T, R> {
     val base = this
     base.configMapper.apply {
@@ -34,9 +34,9 @@ fun <T : Any, R : Any> BaseMapper<T, R>.mapTo(srcAttribute: String, destAttribut
     return base
 }
 
- fun <T : Any, R : Any> BaseMapper<T, R>.ignoreIf(
+fun <T : Any, R : Any> BaseMapper<T, R>.ignoreIf(
     srcAttribute: String,
-     expression: ConditionalIgnore<T>
+    expression: ConditionalIgnore<T>
 ): BaseMapper<T, R> {
     val base = this
     (base.configMapper as ConfigMapper<T, R>).ignoreIf(srcAttribute) {
