@@ -35,11 +35,21 @@ class ConfigMapper<T : Any, R : Any> {
     }
 
     fun ignoreIf(srcAttribute: String, expression: ConditionalIgnore<T>): ConfigMapper<T, R> {
-        val pairExist = listIgnoredExpression.firstOrNull {
+        val index = listIgnoredExpression.indexOfFirst {
             it.first == srcAttribute
         }
-        if (pairExist == null)
+        if (index == -1)
             listIgnoredExpression.add(Pair(srcAttribute, expression))
+        else {
+            val occSrcAttIgnoreIf = listIgnoredExpression.takeWhile {
+                it.first == srcAttribute
+            }.size
+            if (occSrcAttIgnoreIf == 1)
+                listIgnoredExpression[index] = Pair(srcAttribute, expression)
+            else {
+                throw UnSupportedMultipleExpression("ignoreIf")
+            }
+        }
         return this
     }
 
@@ -50,11 +60,22 @@ class ConfigMapper<T : Any, R : Any> {
             println("Unnecessary transformation for ignore field")
             return this
         }
-        val pairExist = listTransformationExpression.firstOrNull {
+
+        val index = listTransformationExpression.indexOfFirst {
             it.first == srcAttribute
         }
-        if (pairExist == null)
+        if (index == -1)
             listTransformationExpression.add(Pair(srcAttribute, expression))
+        else {
+            val occTransformation = listTransformationExpression.takeWhile {
+                it.first == srcAttribute
+            }.size
+            if (occTransformation == 1) {
+                listTransformationExpression[index] = Pair(srcAttribute, expression)
+            } else {
+                throw UnSupportedMultipleExpression("transformation")
+            }
+        }
         return this
     }
 

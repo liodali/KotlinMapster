@@ -1,12 +1,9 @@
 import io.github.serpro69.kfaker.Faker
+import mapper.*
 import java.security.MessageDigest
-import mapper.BaseMapper
-import mapper.ConfigMapper
-import mapper.ignore
-import mapper.ignoreIf
-import mapper.mapTo
-import mapper.transformation
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
+import java.lang.IllegalArgumentException
 
 class TestBaseMapper {
     private val faker = Faker()
@@ -23,6 +20,24 @@ class TestBaseMapper {
         val mapper = BaseMapper.from(user).to(UserDTO::class)
         val dto = mapper.adapt()
         assert(dto == UserDTO(name = name, password = pwd))
+        /*
+         * test exception,particular cases
+         */
+        /*
+         * test case where destination object was not defined
+         */
+        var mapper2 = BaseMapper.from(user)
+        assertThrows<UndefinedDestinationObject> {
+            mapper2.adapt()
+        }
+        /*
+         * test case where destination object was not defined
+         */
+        mapper2 = BaseMapper.from(user)
+        assertThrows<UndefinedDestinationObject> {
+            mapper2.adapt(null)
+        }
+
     }
 
     @Test
@@ -37,12 +52,18 @@ class TestBaseMapper {
         val mapper = BaseMapper.from(user).to(UserDTO::class)
             .ignoreIf("name") {
                 it.name != name
+            }.ignoreIf("password") {
+                it.password != "password"
+            }
+            .ignoreIf("name") {
+                it.name.isNotEmpty()
             }
         val dto = mapper.adapt()
-        assert(dto == UserDTO(null, "1234"))
+        assert(dto == UserDTO(name, "1234"))
 
         val user1 = User(name, password = "1234")
-        mapper.newConfig(ConfigMapper()).ignore("password")
+        mapper.newConfig(ConfigMapper())
+            .ignore("password")
         val dtoUser1 = mapper.adapt(user1)
         assert(dtoUser1 == UserDTO(name, null))
     }
@@ -50,7 +71,7 @@ class TestBaseMapper {
     @Test
     fun baseTransformationTest() {
         data class User(val name: String, val password: String)
-        data class UserDTO(val name: String?, val password: String?)
+        data class UserDTO(val name: String?, val password: String)
 
         val name = faker.name.firstName()
 
@@ -63,6 +84,21 @@ class TestBaseMapper {
             }
         val dto = mapper.adapt()
         assert(dto == UserDTO(name, hashPwd))
+        var mapper2 = mapper.transformation("password") {
+            "12345"
+        }
+        val dto2 = mapper2.adapt()
+        assert(dto2.password == "12345")
+        /*
+         * test case where destination object was not defined
+         */
+        mapper2 = BaseMapper.from(user).to(UserDTO::class)
+            .ignore("password").transformation("password") {
+                hashPassword(it.password)
+            }
+        assertThrows<IllegalArgumentException> {
+            mapper2.adapt()
+        }
     }
 
     @Test
@@ -81,9 +117,17 @@ class TestBaseMapper {
          */
         val mapper = BaseMapper.from(user).to(LoginDTO::class)
             .mapTo("email", "login")
+        /*
+         * test exception
+         */
 
         val dto = mapper.adapt()
         assert(dto == LoginDTO(email, "1234"))
+
+
+        assertThrows<IllegalArgumentException> {
+            mapper.mapTo("email", "password")
+        }
     }
 
     @Test

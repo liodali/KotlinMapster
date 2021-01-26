@@ -32,7 +32,7 @@ jobs:
         run: ./gradlew bintrayUpload
         env:
           GPR_USER: ${{ secrets.GPR_USER }}
-          GPR_KEY: ${{ secrets.BINTRAY_KEY }}
+          BINTRAY_KEY: ${{ secrets.BINTRAY_KEY }}
         continue-on-error: true
       - name: Create a Release JAR
         uses: ncipollo/release-action@v1
