@@ -6,6 +6,7 @@ import mapper.ConfigMapper
 import mapper.UndefinedDestinationObject
 import mapper.ignore
 import mapper.ignoreIf
+import mapper.mapTo
 import mapper.transformation
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
