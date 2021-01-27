@@ -4,6 +4,8 @@ import kotlin.IllegalArgumentException
 import kotlin.reflect.KClass
 import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.full.primaryConstructor
+import kotlin.reflect.full.memberProperties
+import mapper.adaptListTo
 
 fun <T : Any, R : Any> BaseMapper<T, R>.ignore(srcAttribute: String): BaseMapper<T, R> {
     val base = this
@@ -95,12 +97,17 @@ private fun <T : Any> T.mapping(
     return dest.primaryConstructor!!.call(*fieldsArgs)
 }
 
-class BaseMapper<T, R> private constructor(source: T) : IMapper<T, R> {
+class BaseMapper<T : Any, R : Any> private constructor(sourceList: List<T>?, source: T?) : IMapper<T, R> {
+
+    private constructor(sourceList: List<T>) : this(sourceList, null)
+    private constructor(source: T) : this(null, source)
 
     private var dest: KClass<*>? = null
     private lateinit var src: KClass<*>
 
-    private var sourceData: T = source
+    private var sourceData: T? = source
+    private var sourceListData: List<T>? = sourceList
+
     var configMapper: ConfigMapper<*, *> = ConfigMapper<Any, Any>()
         private set
 
@@ -110,6 +117,14 @@ class BaseMapper<T, R> private constructor(source: T) : IMapper<T, R> {
             instance = BaseMapper<T, Any>(source)
             instance.configMapper = ConfigMapper<T, Any>()
             return instance.from(source::class) as BaseMapper<T, Any>
+        }
+
+        fun <T : Any> fromList(list: List<T>): BaseMapper<T, Any> {
+            instance = BaseMapper<T, Any>(list)
+            instance.configMapper = ConfigMapper<T, Any>()
+            val typeData = (list::class as KClass<T>).memberProperties.first()
+                .returnType.arguments.first().type!!.classifier as KClass<T>
+            return instance.from(typeData) as BaseMapper<T, Any>
         }
     }
 
@@ -131,6 +146,24 @@ class BaseMapper<T, R> private constructor(source: T) : IMapper<T, R> {
         return sourceData!!.adaptTo(dest!!) as R
     }
 
+    fun adaptList(listSource: List<T>? = null): List<R> {
+
+        if (dest == null) {
+            throw UndefinedDestinationObject
+        }
+        if (listSource != null) {
+            sourceListData = listSource
+        }
+        if (configMapper.hasConfiguration()) {
+            val list = emptyList<R>().toMutableList()
+            sourceListData!!.forEach {
+                list.add(it!!.mapping(dest!!, configMapper) as R)
+            }
+            return list.toList()
+        }
+        return sourceListData!!.adaptListTo(dest!!) as List<R>
+    }
+
     override fun <R : Any> to(dest: KClass<R>): BaseMapper<T, R> {
         this.dest = dest
         return this as BaseMapper<T, R>
@@ -141,3 +174,7 @@ class BaseMapper<T, R> private constructor(source: T) : IMapper<T, R> {
         return this as BaseMapper<T, R>
     }
 }
+
+
+
+
