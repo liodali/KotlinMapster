@@ -97,7 +97,11 @@ private fun <T : Any> T.mapping(
     return dest.primaryConstructor!!.call(*fieldsArgs)
 }
 
-class BaseMapper<T : Any, R : Any> private constructor(sourceList: List<T>?, source: T?) : IMapper<T, R> {
+class BaseMapper<T : Any, R : Any> constructor() : IMapper<T, R> {
+    private constructor(sourceList: List<T>?, source: T?) : this() {
+        this.sourceListData = sourceList
+        this.sourceData = source
+    }
 
     private constructor(sourceList: List<T>) : this(sourceList, null)
     private constructor(source: T) : this(null, source)
@@ -105,8 +109,8 @@ class BaseMapper<T : Any, R : Any> private constructor(sourceList: List<T>?, sou
     private var dest: KClass<*>? = null
     private lateinit var src: KClass<*>
 
-    private var sourceData: T? = source
-    private var sourceListData: List<T>? = sourceList
+    private var sourceData: T? = null
+    private var sourceListData: List<T>? = null
 
     var configMapper: ConfigMapper<*, *> = ConfigMapper<Any, Any>()
         private set
@@ -133,12 +137,14 @@ class BaseMapper<T : Any, R : Any> private constructor(sourceList: List<T>?, sou
         return instance as BaseMapper<T, R>
     }
 
-    fun adapt(source: T? = null): R {
+    fun adapt(source: T? = sourceData): R {
         if (dest == null) {
             throw UndefinedDestinationObject
         }
         if (source != null) {
             sourceData = source
+        } else {
+            throw UndefinedSourceObject
         }
         if (configMapper.hasConfiguration()) {
             return sourceData!!.mapping(dest!!, configMapper) as R
@@ -146,13 +152,15 @@ class BaseMapper<T : Any, R : Any> private constructor(sourceList: List<T>?, sou
         return sourceData!!.adaptTo(dest!!) as R
     }
 
-    fun adaptList(listSource: List<T>? = null): List<R> {
+    fun adaptList(listSource: List<T>? = sourceListData): List<R> {
 
         if (dest == null) {
             throw UndefinedDestinationObject
         }
         if (listSource != null) {
             sourceListData = listSource
+        } else {
+            throw UndefinedSourceObject
         }
         if (configMapper.hasConfiguration()) {
             val list = emptyList<R>().toMutableList()
