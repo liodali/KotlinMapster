@@ -3,9 +3,8 @@ package mapper
 import kotlin.IllegalArgumentException
 import kotlin.reflect.KClass
 import kotlin.reflect.full.declaredMemberProperties
-import kotlin.reflect.full.primaryConstructor
 import kotlin.reflect.full.memberProperties
-import mapper.adaptListTo
+import kotlin.reflect.full.primaryConstructor
 
 fun <T : Any, R : Any> BaseMapper<T, R>.ignore(srcAttribute: String): BaseMapper<T, R> {
     val base = this
@@ -182,7 +181,3 @@ class BaseMapper<T : Any, R : Any> constructor() : IMapper<T, R> {
         return this as BaseMapper<T, R>
     }
 }
-
-
-
-
