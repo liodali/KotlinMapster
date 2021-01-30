@@ -1,7 +1,6 @@
 import io.github.serpro69.kfaker.Faker
 import mapper.BaseMapper
 import mapper.UndefinedSourceObject
-import mapper.adaptListTo
 import mapper.ignore
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -42,11 +41,10 @@ class TestListBaseMapper {
         }
         val mapper = BaseMapper<User, UserDTO>().to(UserDTO::class)
 
-
         assertThrows<UndefinedSourceObject> {
             mapper.adaptList()
         }
         val listDTOs = mapper.adaptList(users)
-        assert(listDTOs.first().name==users.first().name)
+        assert(listDTOs.first().name == users.first().name)
     }
 }
