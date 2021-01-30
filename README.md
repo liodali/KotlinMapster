@@ -7,7 +7,7 @@
 
 `stable-version : 0.3.1`
 
-`dev-version : 0.4.0-alpha03`
+`dev-version : 0.4.0-alpha04`
 
 ### Gradle Installation
 
@@ -35,11 +35,11 @@ dependencies {
 
 ```kotlin
  data class Person(val email: String, val password: String, val firstName: String)
- data class PersonDTO(val email: String, val firstName: String)
+data class PersonDTO(val email: String, val firstName: String)
 
- val person = Person("lorem@email.com", "person", "person",)
+val person = Person("lorem@email.com", "person", "person",)
 
- val dto = person.adaptTo(PersonDTO::class)
+val dto = person.adaptTo(PersonDTO::class)
 ```
 
 ### mapping list example :
@@ -60,9 +60,9 @@ val dtos = persons.adaptListTo(PersonDTO::class)
 ```kotlin
  data class Person(@MapTo("login") val email: String, val password: String, val firstName: String, val adr: Address)
 
- data class LoginUser(val login: String, val password: String)
+data class LoginUser(val login: String, val password: String)
 
- val login = person.adaptTo(LoginUser::class)
+val login = person.adaptTo(LoginUser::class)
 
 
 ```
@@ -82,17 +82,17 @@ Attribute     | description |
 
 ```kotlin
   data class User(
-      @CombineTo(destAtt = "fullName", index = 0) val firstName: String,
-      @CombineTo(destAtt = "fullName", index = 1) val lastName: String,
-      val CIN: String
-  )
-  
-  data class UserDTO(
-      val fullName: String,
-      val CIN: String
-  )
-  
-  val dto = user.adaptTo(UserDTO::class)
+    @CombineTo(destAtt = "fullName", index = 0) val firstName: String,
+    @CombineTo(destAtt = "fullName", index = 1) val lastName: String,
+    val CIN: String
+)
+
+data class UserDTO(
+    val fullName: String,
+    val CIN: String
+)
+
+val dto = user.adaptTo(UserDTO::class)
 
 ```
 
@@ -110,23 +110,43 @@ Attribute     | description |
 
 * `BaseMapper` : mapper instance
     * you can use `IMapper` interface to pass it into a DI
+    * support list mapping
     * available in 0.4.0-alpha
 
 ```kotlin
 
-  data class User(val name: String, val password: String, val country: String, val phone: String)
-  data class UserDTO(val name: String, val password: String)
-  
-  val faker = Faker() // faker object to generate random data
-  val user = User(
-      name = faker.name.firstName(),
-      password = "1234",
-      country = faker.address.country(),
-      phone = faker.phoneNumber.phoneNumber()
-  )
-  
-  val mapper = BaseMapper.from(user).to(UserDTO::class)
-  val dto = mapper.adapt()
+data class User(val name: String, val password: String, val country: String, val phone: String)
+data class UserDTO(val name: String, val password: String)
+
+val faker = Faker() // faker object to generate random data
+val user = User(
+    name = faker.name.firstName(),
+    password = "1234",
+    country = faker.address.country(),
+    phone = faker.phoneNumber.phoneNumber()
+)
+
+val mapper = BaseMapper.from(user).to(UserDTO::class)
+val dto = mapper.adapt()
+```
+
+### Map List of object
+
+```kotlin
+data class User(val name: String, val password: String)
+data class UserDTO(val name: String?, val password: String?)
+
+val users = emptyList<User>().toMutableList()
+for (i in 0..2) {
+    val name = faker.name.firstName()
+    val pwd = "1234"
+    users.add(User(name, password = pwd))
+}
+// new way to create instance of BaseMapper
+val mapper = BaseMapper<User, UserDTO>()
+    .to(UserDTO::class).ignore("password")
+
+val dtoList = mapper.adaptList(users)
 ```
 
 ## Mapper Manipulation
@@ -135,98 +155,99 @@ Attribute     | description |
 
 ```kotlin
   data class User(val name: String, val password: String, val dateCreation: String, val age: Int)
-  data class UserDTO(val name: String?, val password: String?, val dateCreation: String?, val age: Int?)
-  
-  val name = faker.name.firstName()
-  val user = User(name, password = "1234", "12/12/2020", 20)
-  
-  /// ConfigMapper Instance
-  val configMapper = ConfigMapper<User, UserDTO>()
-      .ignoreAtt("age") // ignore field
-      .ignoreIf("dateCreation") {     // conditional ignore
-          it.dateCreation.isEmpty()  //
-      }
-      .transformation("password") { user -> //transformation
-          hashPassword(user.password)
-      }.map("name", "login") // map field to another destination field
-  /// BaseMapper Instance
-  val mapper = BaseMapper.from(user).to(UserDTO::class).newConfig(configMapper)
-  /// map user to dto
-  val dto = mapper.adapt()
+data class UserDTO(val name: String?, val password: String?, val dateCreation: String?, val age: Int?)
+
+val name = faker.name.firstName()
+val user = User(name, password = "1234", "12/12/2020", 20)
+
+/// ConfigMapper Instance
+val configMapper = ConfigMapper<User, UserDTO>()
+    .ignoreAtt("age") // ignore field
+    .ignoreIf("dateCreation") {     // conditional ignore
+        it.dateCreation.isEmpty()  //
+    }
+    .transformation("password") { user -> //transformation
+        hashPassword(user.password)
+    }.map("name", "login") // map field to another destination field
+/// BaseMapper Instance
+val mapper = BaseMapper.from(user).to(UserDTO::class).newConfig(configMapper)
+/// map user to dto
+val dto = mapper.adapt()
 ```
 
 * you can apply the same manipulation use `BaseMapper` without need to create new `ConfigurationMapper`
 
 ### Ignore
+
     To ignore Field, you need to mark it nullable
 
 * Ignore Field :
-  
 
-  ```kotlin
-    data class User(val name: String, val password: String)
-    data class UserDTO(val name: String?, val password: String?)
-    val name = faker.name.firstName()
-  
-    val user = User(name, password = "1234")
-    val mapper = BaseMapper.from(user).to(UserDTO::class)
-              .ignore("password") 
-    val dto = mapper.adapt()
-  ```
-    * Conditional Ignore Field :
+```kotlin
+data class User(val name: String, val password: String)
+data class UserDTO(val name: String?, val password: String?)
+
+val name = faker.name.firstName()
+val user = User(name, password = "1234")
+val mapper = BaseMapper.from(user).to(UserDTO::class)
+    .ignore("password")
+val dto = mapper.adapt()
+```
+
+* Conditional Ignore Field :
 
   > You can ignore Field Conditionally with condition base on source, when condition is met,the field that has the same name in destination object will be skipped.
 
   > You can combine it with map to skip field that has different name in destination object.
 
-  ```kotlin
-    data class User(val name: String, val password: String)
-    data class UserDTO(val name: String?, val password: String?)
-    
-    val name = faker.name.firstName()
-    
-    val user = User(name, password = "1234")
-    val mapper = BaseMapper.from(user).to(UserDTO::class)
-        .ignore("password")
-    val dto = mapper.adapt()
+```kotlin
+data class User(val name: String, val password: String)
+data class UserDTO(val name: String?, val password: String?)
+
+val name = faker.name.firstName()
+
+val user = User(name, password = "1234")
+val mapper = BaseMapper.from(user).to(UserDTO::class)
+    .ignore("password")
+val dto = mapper.adapt()
   ```
 
 ### Transformation :
 
-> you can compute new values using transformation,example hash the password entered by the user
+  > you can compute new values using transformation,example hash the password entered by the user
 
 ```kotlin
-  data class User(val name: String, val email: String, val password: String, val country: String)
-  data class LoginDTO(val login: String?, val password: String?)
-  // data preparation
-  val name = faker.name.firstName()
-  val email = faker.internet.email()
-  val country = faker.address.country()
-  val user = User(name, email, "1234", country)
-  
-  //BaseMapper builder with mapTo and transformation 
-  val mapper = BaseMapper.from(user).to(LoginDTO::class)
-      .mapTo("email", "login")
-      .transformation("password") { user ->
-          hashPassword(user.password)
-      }
-  val dto = mapper.adapt()
+data class User(val name: String, val email: String, val password: String, val country: String)
+data class LoginDTO(val login: String?, val password: String?)
+// data preparation
+val name = faker.name.firstName()
+val email = faker.internet.email()
+val country = faker.address.country()
+val user = User(name, email, "1234", country)
+
+//BaseMapper builder with mapTo and transformation 
+val mapper = BaseMapper.from(user).to(LoginDTO::class)
+    .mapTo("email", "login")
+    .transformation("password") { user ->
+        hashPassword(user.password)
+    }
+val dto = mapper.adapt()
 ```
 
 ### MapTo
 
-> you can map field with difference names using `MapTo`
+  > you can map field with difference names using `MapTo`
 
 ```kotlin
 
 data class User(val name: String, val email: String, val password: String, val country: String)
 data class LoginDTO(val login: String?, val password: String?)
-  
-  val user = User(faker.name.firstName(), faker.internet.email(), password = "1234",faker.address.country())
-  
-  val mapper = BaseMapper.from(user).to(UserDTO::class)
-      .mapTo("email", "login")
-  val dto = mapper.adapt()
+
+val user = User(faker.name.firstName(), faker.internet.email(), password = "1234", faker.address.country())
+
+val mapper = BaseMapper.from(user).to(UserDTO::class)
+    .mapTo("email", "login")
+val dto = mapper.adapt()
 ```
 
 ### PS
