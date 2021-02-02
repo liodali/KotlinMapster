@@ -36,6 +36,7 @@ fun <T : Any, R : Any> BaseMapper<T, R>.transformation(
     return base
 }
 
+
 fun <T : Any, R : Any> BaseMapper<T, R>.ignoreIf(
     srcAttribute: String,
     expression: ConditionalIgnore<T>
@@ -58,6 +59,8 @@ private fun <T : Any> T.mapping(
     val listMappedAtt: List<Pair<String, String>> = configMapper.listMappedAttributes
     val listTransformations =
         configMapper.listTransformationExpression as List<Pair<String, TransformationExpression<T>>>
+    val listNestedTransformation =
+        configMapper.listNestedTransformationExpression as List<Pair<String, TransformationExpression<Any>>>
 
     val fieldsArgs = dest.primaryConstructor!!.parameters.map { kProp ->
 
@@ -85,6 +88,12 @@ private fun <T : Any> T.mapping(
                     val newValue = it.second(this)
                     newValue
                 } ?: v
+            } else if (listNestedTransformation.isNotEmpty()) {
+                v = listNestedTransformation.firstOrNull {
+                    it.first == field.name
+                }?.let {
+                    it.second(this)
+                } ?: v
             }
         }
         if ((kProp.type.classifier as KClass<*>).isData) {
@@ -94,6 +103,7 @@ private fun <T : Any> T.mapping(
                 val typeDest = (kProp.type).arguments.first().type!!.classifier as KClass<*>
                 val baseList = BaseMapper<Any, Any>()
                     .from((kProp.type.classifier as KClass<*>))
+                baseList.newConfig(configMapper)
                 v = baseList.to(typeDest).adaptList(v as List<Nothing>?)
             }
         }
@@ -102,7 +112,11 @@ private fun <T : Any> T.mapping(
     return dest.primaryConstructor!!.call(*fieldsArgs)
 }
 
-class BaseMapper<T : Any, R : Any> constructor() : IMapper<T, R> {
+class BaseMapper<T : Any, R : Any> : IMapper<T, R> {
+    constructor() {
+        instance = this
+    }
+
     private constructor(sourceList: List<T>?, source: T?) : this() {
         this.sourceListData = sourceList
         this.sourceData = source
@@ -175,6 +189,19 @@ class BaseMapper<T : Any, R : Any> constructor() : IMapper<T, R> {
             return list.toList()
         }
         return sourceListData!!.adaptListTo(dest!!) as List<R>
+    }
+
+    fun <K : Any> nestedTransformation(
+        srcAttribute: String,
+        nestedTransformation: TransformationExpression<K>
+    ): BaseMapper<T, R> {
+        val base = this
+        base.configMapper.apply {
+            this.nestedTransformation<K>(srcAttribute) {
+                nestedTransformation(it)
+            }
+        }
+        return base
     }
 
     override fun <R : Any> to(dest: KClass<R>): BaseMapper<T, R> {
