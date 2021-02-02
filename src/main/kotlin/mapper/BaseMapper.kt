@@ -5,6 +5,7 @@ import kotlin.reflect.KClass
 import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.primaryConstructor
+import kotlin.reflect.full.superclasses
 
 fun <T : Any, R : Any> BaseMapper<T, R>.ignore(srcAttribute: String): BaseMapper<T, R> {
     val base = this
@@ -88,9 +89,14 @@ private fun <T : Any> T.mapping(
         }
         if ((kProp.type.classifier as KClass<*>).isData) {
             v = v!!.mapping(kProp.type.classifier as KClass<*>, configMapper)
-        } /* else {
-             /// TODO support list mapping
-         }*/
+        } else {
+            if ((kProp.type.classifier as KClass<*>).superclasses.contains(Collection::class)) {
+                val typeDest = (kProp.type).arguments.first().type!!.classifier as KClass<*>
+                val baseList = BaseMapper<Any, Any>()
+                    .from((kProp.type.classifier as KClass<*>))
+                v = baseList.to(typeDest).adaptList(v as List<Nothing>?)
+            }
+        }
         v
     }.toTypedArray()
     return dest.primaryConstructor!!.call(*fieldsArgs)
@@ -176,7 +182,7 @@ class BaseMapper<T : Any, R : Any> constructor() : IMapper<T, R> {
         return this as BaseMapper<T, R>
     }
 
-    private fun <T : Any> from(src: KClass<T>): BaseMapper<T, R> {
+    fun <T : Any> from(src: KClass<T>): BaseMapper<T, R> {
         this.src = src
         return this as BaseMapper<T, R>
     }
