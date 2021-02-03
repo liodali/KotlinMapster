@@ -2,6 +2,8 @@ package mapper
 
 import kotlin.IllegalArgumentException
 import kotlin.reflect.KClass
+import kotlin.reflect.KProperty
+import kotlin.reflect.KProperty1
 import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.primaryConstructor
@@ -48,6 +50,63 @@ fun <T : Any, R : Any> BaseMapper<T, R>.ignoreIf(
     return base
 }
 
+internal fun Any.getParentFieldValue(
+    src: KClass<Any>,
+    destName: String,
+    prop: KProperty1<Any, *>? = null,
+    isNested: Boolean = false,
+): Any? {
+    val field = src.declaredMemberProperties.firstOrNull {
+        it.name == destName
+    }
+    if (field == null) {
+        src.declaredMemberProperties.forEach { p ->
+            if ((p.returnType.classifier as KClass<*>).isData) {
+                return this.getParentFieldValue(
+                    (p.returnType.classifier as KClass<Any>),
+                    destName,
+                    prop = p,
+                    isNested = true
+                )
+            }
+        }
+    }
+    if (isNested) {
+        return (prop as KProperty1<Any, *>).get(this)
+    }
+    return field!!.get(this)
+}
+
+internal fun Any.getFieldValue(
+    src: KClass<Any>,
+    destName: String,
+    mappedName: String?,
+    prop: KProperty1<Any, *>? = null,
+    isNested: Boolean = false,
+): Pair<Any?, KProperty1<Any, *>> {
+    val field = src.declaredMemberProperties.firstOrNull {
+        val name = mappedName ?: destName
+        it.name == name
+    }
+    if (field == null) {
+        src.declaredMemberProperties.forEach { p ->
+            if ((p.returnType.classifier as KClass<*>).isData) {
+                return this.getFieldValue(
+                    (p.returnType.classifier as KClass<Any>),
+                    destName,
+                    mappedName,
+                    prop = p,
+                    isNested = true
+                )
+            }
+        }
+    }
+    if (isNested) {
+        return Pair(field!!.getValue((prop as KProperty1<Any, *>).get(this)!!, field)!!, field)
+    }
+    return Pair(field!!.get(this), field)
+}
+
 private fun <T : Any> T.mapping(
     dest: KClass<*>,
     configMapper: ConfigMapper<*, *>
@@ -67,11 +126,15 @@ private fun <T : Any> T.mapping(
         val nameMapper: String? = listMappedAtt.firstOrNull { m ->
             m.second == kProp.name
         }?.first
-        val field = (this::class as KClass<Any>).declaredMemberProperties.first {
-            val name = nameMapper ?: kProp.name
-            it.name == name
-        }
-        var v: Any? = field.get(this)
+
+        val (value, field) = this.getFieldValue((this::class as KClass<Any>), kProp.name!!, nameMapper)
+
+        /*(this::class as KClass<Any>).declaredMemberProperties.firstOrNull {
+        val name = nameMapper ?: kProp.name
+        it.name == name
+        }*/
+
+        var v: Any? = value
         val isIgnore = listExpressions.map {
             !it.second(this) && field.name == it.first
         }.firstOrNull { it } != null || listAtt.contains(field.name)
@@ -91,8 +154,18 @@ private fun <T : Any> T.mapping(
             } else if (listNestedTransformation.isNotEmpty()) {
                 v = listNestedTransformation.firstOrNull {
                     it.first == field.name
-                }?.let {
-                    it.second(this)
+                }?.let { pair ->
+                    val nestedV: Any? = this.getParentFieldValue((this::class as KClass<Any>),pair.first)
+                    /*(this::class as KClass<Any>).declaredMemberProperties.forEach { np ->
+                        if ((np.returnType.classifier as KClass<Any>).isData) {
+                            (np.returnType.classifier as KClass<Any>).declaredMemberProperties.forEach { sub ->
+                                if (sub.name == pair.first) {
+                                    nestedV = np.get(this)
+                                }
+                            }
+                        }
+                    }*/
+                    pair.second(nestedV!!)
                 } ?: v
             }
         }
