@@ -209,7 +209,7 @@ class BaseMapper<T : Any, R : Any> : IMapper<T, R> {
         return this as BaseMapper<T, R>
     }
 
-    fun <T : Any> from(src: KClass<T>): BaseMapper<T, R> {
+    internal fun <T : Any> from(src: KClass<T>): BaseMapper<T, R> {
         this.src = src
         return this as BaseMapper<T, R>
     }
