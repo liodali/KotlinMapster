@@ -34,7 +34,7 @@ dependencies {
 ### simple example :
 
 ```kotlin
- data class Person(val email: String, val password: String, val firstName: String)
+data class Person(val email: String, val password: String, val firstName: String)
 data class PersonDTO(val email: String, val firstName: String)
 
 val person = Person("lorem@email.com", "person", "person",)
@@ -81,7 +81,7 @@ Attribute     | description |
 * use `CombineTo` annotation to combine attributes to another with difference name
 
 ```kotlin
-  data class User(
+data class User(
     @CombineTo(destAtt = "fullName", index = 0) val firstName: String,
     @CombineTo(destAtt = "fullName", index = 1) val lastName: String,
     val CIN: String
@@ -111,6 +111,7 @@ Attribute     | description |
 * `BaseMapper` : mapper instance
     * you can use `IMapper` interface to pass it into a DI
     * support list mapping
+    * support nested list mapping and nested Transformation
     * available in 0.4.0-alpha
 
 ```kotlin
@@ -154,7 +155,7 @@ val dtoList = mapper.adaptList(users)
 * you can create custom configuration for `BaseMapper` to manipulate data during mapping
 
 ```kotlin
-  data class User(val name: String, val password: String, val dateCreation: String, val age: Int)
+data class User(val name: String, val password: String, val dateCreation: String, val age: Int)
 data class UserDTO(val name: String?, val password: String?, val dateCreation: String?, val age: Int?)
 
 val name = faker.name.firstName()
@@ -214,7 +215,7 @@ val dto = mapper.adapt()
 
 ### Transformation :
 
-  > you can compute new values using transformation,example hash the password entered by the user
+> you can compute new values using transformation,example hash the password entered by the user
 
 ```kotlin
 data class User(val name: String, val email: String, val password: String, val country: String)
@@ -236,7 +237,7 @@ val dto = mapper.adapt()
 
 ### MapTo
 
-  > you can map field with difference names using `MapTo`
+> you can map field with difference names using `MapTo`
 
 ```kotlin
 
