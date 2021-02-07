@@ -39,8 +39,14 @@ class AnnotationAdapt {
     @Test
     fun testMapToAnnotation() {
         val person = Person(
-            "lorem@email.com", "person", "person", Address(
-                "000", "new york", "new york", 2010
+            "lorem@email.com",
+            "person",
+            "person",
+            Address(
+                "000",
+                "new york",
+                "new york",
+                2010
             )
         )
         val manualLogin = person.toLogin()

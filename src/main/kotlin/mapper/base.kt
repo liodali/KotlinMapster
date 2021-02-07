@@ -1,5 +1,7 @@
 package mapper
 
+import mapper.annotations.CombineTo
+import mapper.annotations.MapTo
 import java.lang.IllegalStateException
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
@@ -9,8 +11,6 @@ import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.primaryConstructor
 import kotlin.reflect.full.superclasses
 import kotlin.reflect.jvm.jvmName
-import mapper.annotations.CombineTo
-import mapper.annotations.MapTo
 
 // / adaptTo : mapper from T to R
 // / runtime mapper

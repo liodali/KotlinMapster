@@ -1,7 +1,7 @@
 import io.github.serpro69.kfaker.Faker
-import java.util.Random
 import mapper.adaptListTo
 import org.junit.jupiter.api.Test
+import java.util.Random
 
 class ListTest {
     data class Address(val id: Int, val adr1: String, val ville: String, val codePostal: String)
