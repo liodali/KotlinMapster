@@ -7,7 +7,7 @@
 
 `stable-version : 0.3.1`
 
-`dev-version : 0.4.0-alpha04`
+`dev-version : 0.4.0-beta01`
 
 ### Gradle Installation
 
