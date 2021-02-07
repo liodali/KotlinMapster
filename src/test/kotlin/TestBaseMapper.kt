@@ -1,6 +1,4 @@
 import io.github.serpro69.kfaker.Faker
-import java.lang.IllegalArgumentException
-import java.security.MessageDigest
 import mapper.BaseMapper
 import mapper.ConfigMapper
 import mapper.UndefinedDestinationObject
@@ -10,6 +8,8 @@ import mapper.mapTo
 import mapper.transformation
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import java.lang.IllegalArgumentException
+import java.security.MessageDigest
 
 class TestBaseMapper {
     private val faker = Faker()

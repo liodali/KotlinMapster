@@ -31,8 +31,14 @@ class SimpleTest {
     @Test
     fun testAdapt() {
         val person = Person(
-            "lorem@email.com", "person", "person", Address(
-                "000", "new york", "new york", 2010
+            "lorem@email.com",
+            "person",
+            "person",
+            Address(
+                "000",
+                "new york",
+                "new york",
+                2010
             )
         )
 
@@ -53,8 +59,12 @@ class SimpleTest {
         println("manual Mapper timer:$timeExecutionManual ms ")
         assert(
             dto == PersonDTO(
-                "lorem@email.com", "person", AddressDTO(
-                    "new york", "new york", 2010
+                "lorem@email.com",
+                "person",
+                AddressDTO(
+                    "new york",
+                    "new york",
+                    2010
                 )
             )
         )

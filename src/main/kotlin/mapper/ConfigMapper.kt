@@ -29,7 +29,7 @@ class ConfigMapper<T : Any, R : Any> {
         emptyList<Pair<String, TransformationExpression<*>>>().toMutableList()
 
     fun hasConfiguration(): Boolean = this.listIgnoredExpression.isNotEmpty() ||
-            this.listIgnoredAttribute.isNotEmpty() || this.listTransformationExpression.isNotEmpty() || this.listNestedTransformationExpression.isNotEmpty() || this.listMappedAttributes.isNotEmpty()
+        this.listIgnoredAttribute.isNotEmpty() || this.listTransformationExpression.isNotEmpty() || this.listNestedTransformationExpression.isNotEmpty() || this.listMappedAttributes.isNotEmpty()
 
     fun ignoreAtt(srcAtt: String): ConfigMapper<T, R> {
         if (!listIgnoredAttribute.contains(srcAtt))
@@ -58,8 +58,9 @@ class ConfigMapper<T : Any, R : Any> {
 
     fun transformation(srcAttribute: String, expression: TransformationExpression<T>): ConfigMapper<T, R> {
         if (listIgnoredAttribute.contains(srcAttribute) || listIgnoredExpression.firstOrNull {
-                it.first == srcAttribute
-            } != null) {
+            it.first == srcAttribute
+        } != null
+        ) {
             println("Unnecessary transformation for ignore field")
             return this
         }
@@ -87,8 +88,9 @@ class ConfigMapper<T : Any, R : Any> {
         expression: TransformationExpression<K>
     ): ConfigMapper<T, R> {
         if (listIgnoredAttribute.contains(srcAttribute) || listIgnoredExpression.firstOrNull {
-                it.first == srcAttribute
-            } != null) {
+            it.first == srcAttribute
+        } != null
+        ) {
             println("Unnecessary transformation for ignore field")
             return this
         }
@@ -114,8 +116,9 @@ class ConfigMapper<T : Any, R : Any> {
 
     fun map(srcAttribute: String, destAttribute: String): ConfigMapper<T, R> {
         if (listMappedAttributes.firstOrNull {
-                it.first == srcAttribute
-            } != null) {
+            it.first == srcAttribute
+        } != null
+        ) {
             throw IllegalArgumentException("cannot map $srcAttribute to multiple destination field")
         }
 

@@ -1,5 +1,8 @@
 import io.github.serpro69.kfaker.Faker
-import mapper.*
+import mapper.BaseMapper
+import mapper.UndefinedSourceObject
+import mapper.ignore
+import mapper.mapTo
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.lang.IllegalArgumentException
@@ -91,14 +94,14 @@ class TestListBaseMapper {
         val mapper = BaseMapper.from(user).to(LoginDTO::class)
             .mapTo("email", "login")
             .nestedTransformation<Address>("country") {
-                it.country.toUpperCase().subSequence(0,3).toString()
+                it.country.toUpperCase().subSequence(0, 3).toString()
             }
         /*
          * test exception
          */
 
         val dto = mapper.adapt()
-        assert(dto.country == user.address.country.toUpperCase().subSequence(0,3).toString())
+        assert(dto.country == user.address.country.toUpperCase().subSequence(0, 3).toString())
 
         assertThrows<IllegalArgumentException> {
             mapper.mapTo("email", "password")

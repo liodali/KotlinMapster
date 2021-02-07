@@ -2,7 +2,6 @@ package mapper
 
 import kotlin.IllegalArgumentException
 import kotlin.reflect.KClass
-import kotlin.reflect.KProperty
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.full.memberProperties
@@ -37,7 +36,6 @@ fun <T : Any, R : Any> BaseMapper<T, R>.transformation(
     }
     return base
 }
-
 
 fun <T : Any, R : Any> BaseMapper<T, R>.ignoreIf(
     srcAttribute: String,
@@ -151,9 +149,9 @@ private fun <T : Any> T.mapping(
                 v = listNestedTransformation.firstOrNull {
                     it.first == field.name
                 }?.let { pair ->
-                    val nestedV: Any? = if(isNested){
+                    val nestedV: Any? = if (isNested) {
                         this
-                    }else{
+                    } else {
                         this.getParentFieldValue((this::class as KClass<Any>), pair.first)
                     }
                     pair.second(nestedV!!)
@@ -161,7 +159,7 @@ private fun <T : Any> T.mapping(
             }
         }
         if ((kProp.type.classifier as KClass<*>).isData) {
-            v = v!!.mapping(kProp.type.classifier as KClass<*>, configMapper,isNested = true)
+            v = v!!.mapping(kProp.type.classifier as KClass<*>, configMapper, isNested = true)
         } else {
             if ((kProp.type.classifier as KClass<*>).superclasses.contains(Collection::class)) {
                 val typeDest = (kProp.type).arguments.first().type!!.classifier as KClass<*>
@@ -251,7 +249,7 @@ class BaseMapper<T : Any, R : Any> : IMapper<T, R> {
         if (configMapper.hasConfiguration()) {
             val list = emptyList<R>().toMutableList()
             sourceListData!!.forEach {
-                list.add(it!!.mapping(dest!!, configMapper,isNested = isNested) as R)
+                list.add(it!!.mapping(dest!!, configMapper, isNested = isNested) as R)
             }
             return list.toList()
         }
