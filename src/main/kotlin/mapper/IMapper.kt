@@ -13,14 +13,13 @@ inline fun <reified R : Any, T : Any> IMapper<T, R>.adapt(src: T? = null): R {
         ?: throw IllegalAccessException("you cannot map null object,configure BaseMapper correctly")
 }
 
-inline fun <reified R : Any, T : Any> IMapper<T, R>.adaptList(src: List<T>? = emptyList()): List<R> {
+inline fun <reified R : Any, T : Any> IMapper<T, R>.adaptList(src: List<T> = emptyList()): List<R> {
     if (this is BaseMapper) {
-        return if (src.isNullOrEmpty())
+        return if (src.isEmpty())
             this.adaptList()
         else this.adaptList(src)
     }
-    return src?.adaptListTo(R::class)?.toList()
-        ?: throw IllegalAccessException("you cannot map null object,configure BaseMapper correctly")
+    return src.adaptListTo(R::class).toList()
 }
 
 interface IMapper<T, R> {
