@@ -163,11 +163,11 @@ private fun <T : Any> T.mapping(
         } else {
             if ((kProp.type.classifier as KClass<*>).superclasses.contains(Collection::class)) {
                 val typeDest = (kProp.type).arguments.first().type!!.classifier as KClass<*>
-                val baseList = BaseMapper<Any, Any>()
+                val baseList: BaseMapper<*, *> = BaseMapper<Any, Any>()
                     .from((kProp.type.classifier as KClass<*>))
                 baseList.newConfig(configMapper)
                 baseList.isNested = true
-                v = baseList.to(typeDest).adaptList(v as List<Nothing>?)
+                v = baseList.to(typeDest).adaptList(v as List<Nothing>)
             }
         }
         v
@@ -225,11 +225,10 @@ class BaseMapper<T : Any, R : Any> : IMapper<T, R> {
         if (dest == null) {
             throw UndefinedDestinationObject
         }
-        if (source != null) {
-            sourceData = source
-        } else {
+        if (source == null) {
             throw UndefinedSourceObject
         }
+        sourceData = source
         if (configMapper.hasConfiguration()) {
             return sourceData!!.mapping(dest!!, configMapper) as R
         }
@@ -241,10 +240,12 @@ class BaseMapper<T : Any, R : Any> : IMapper<T, R> {
         if (dest == null) {
             throw UndefinedDestinationObject
         }
-        if (listSource != null) {
-            sourceListData = listSource
-        } else {
+        if (listSource == null) {
             throw UndefinedSourceObject
+        }
+        sourceListData = listSource
+        if (sourceListData!!.isEmpty()) {
+            return emptyList()
         }
         if (configMapper.hasConfiguration()) {
             val list = emptyList<R>().toMutableList()
