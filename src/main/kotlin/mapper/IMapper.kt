@@ -7,7 +7,6 @@ inline fun <reified R : Any, T : Any> IMapper<T, R>.adapt(src: T? = null): R {
         return if (src != null)
             this.adapt(src)
         else return this.adapt()
-
     }
     return src?.adaptTo(R::class)
         ?: throw IllegalAccessException("you cannot map null object,configure BaseMapper correctly")

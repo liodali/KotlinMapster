@@ -18,10 +18,13 @@ typealias TransformationExpression<T> = (src: T) -> Any
 class ConfigMapper<T : Any, R : Any> {
 
     internal val listIgnoredAttribute: MutableList<String> = emptyList<String>().toMutableList()
+
     internal val listMappedAttributes: MutableList<Pair<String, String>> =
         emptyList<Pair<String, String>>().toMutableList()
+
     internal val listIgnoredExpression: MutableList<Pair<String, ConditionalIgnore<T>>> =
         emptyList<Pair<String, ConditionalIgnore<T>>>().toMutableList()
+
     internal val listTransformationExpression: MutableList<Pair<String, TransformationExpression<T>>> =
         emptyList<Pair<String, TransformationExpression<T>>>().toMutableList()
 

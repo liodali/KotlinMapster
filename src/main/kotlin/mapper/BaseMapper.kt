@@ -163,7 +163,7 @@ private fun <T : Any> T.mapping(
         } else {
             if ((kProp.type.classifier as KClass<*>).superclasses.contains(Collection::class)) {
                 val typeDest = (kProp.type).arguments.first().type!!.classifier as KClass<*>
-                val baseList:BaseMapper<*,*> = BaseMapper<Any, Any>()
+                val baseList: BaseMapper<*, *> = BaseMapper<Any, Any>()
                     .from((kProp.type.classifier as KClass<*>))
                 baseList.newConfig(configMapper)
                 baseList.isNested = true
