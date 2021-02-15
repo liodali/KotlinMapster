@@ -8,7 +8,10 @@ import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.primaryConstructor
 import kotlin.reflect.full.superclasses
 
-fun <T : Any, R : Any> BaseMapper<T, R>.ignore(srcAttribute: String): BaseMapper<T, R> {
+fun <T : Any, R : Any> BaseMapper<T, R>.ignore(
+    srcAttribute: String
+):
+        BaseMapper<T, R> {
     val base = this
     base.configMapper.apply {
         this.ignoreAtt(srcAttribute)
@@ -16,7 +19,10 @@ fun <T : Any, R : Any> BaseMapper<T, R>.ignore(srcAttribute: String): BaseMapper
     return base
 }
 
-fun <T : Any, R : Any> BaseMapper<T, R>.mapTo(srcAttribute: String, destAttribute: String): BaseMapper<T, R> {
+fun <T : Any, R : Any> BaseMapper<T, R>.mapTo(
+    srcAttribute: String,
+    destAttribute: String
+): BaseMapper<T, R> {
     val base = this
     base.configMapper.apply {
         this.map(srcAttribute, destAttribute)
@@ -108,7 +114,8 @@ internal fun Any.getFieldValue(
 private fun <T : Any> T.mapping(
     dest: KClass<*>,
     configMapper: ConfigMapper<*, *>,
-    isNested: Boolean = false
+    isNested: Boolean = false,
+    isBackward: Boolean = false
 ): Any {
 
     val listExpressions: List<Pair<String, ConditionalIgnore<T>>> =
@@ -137,7 +144,7 @@ private fun <T : Any> T.mapping(
                 v = null
             } else
                 throw IllegalArgumentException("you cannot ignore non nullable field")
-        } else {
+        } else if (!isBackward) {
             if (listTransformations.isNotEmpty()) {
                 v = listTransformations.firstOrNull {
                     it.first == field.name
@@ -157,6 +164,8 @@ private fun <T : Any> T.mapping(
                     pair.second(nestedV!!)
                 } ?: v
             }
+        } else {
+            ///TODO("inverse mapping")
         }
         if ((kProp.type.classifier as KClass<*>).isData) {
             v = v!!.mapping(kProp.type.classifier as KClass<*>, configMapper, isNested = true)
@@ -219,6 +228,14 @@ class BaseMapper<T : Any, R : Any> : IMapper<T, R> {
     fun <T, R> newConfig(configMapper: ConfigMapper<T, R>): BaseMapper<T, R> where T : Any, R : Any {
         instance.configMapper = configMapper
         return instance as BaseMapper<T, R>
+    }
+    /*
+    * [adaptInverse] : method to inverse mapping from R to T
+    *
+     */
+    fun adaptInverse(source: R): T {
+
+        return source.adaptTo(src) as T
     }
 
     fun adapt(source: T? = sourceData): R {
