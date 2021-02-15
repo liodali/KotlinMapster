@@ -17,49 +17,63 @@ typealias TransformationExpression<T> = (src: T) -> Any
  */
 class ConfigMapper<T : Any, R : Any> {
 
-    internal val listIgnoredAttribute: MutableList<String> = emptyList<String>().toMutableList()
+    internal var listIgnoredAttribute: List<String> = emptyList()
 
-    internal val listMappedAttributes: MutableList<Pair<String, String>> =
-        emptyList<Pair<String, String>>().toMutableList()
+    internal var listMappedAttributes: List<Pair<String, String>> =
+        emptyList()
 
-    internal val listIgnoredExpression: MutableList<Pair<String, ConditionalIgnore<T>>> =
-        emptyList<Pair<String, ConditionalIgnore<T>>>().toMutableList()
+    internal var listIgnoredExpression: List<Pair<String, ConditionalIgnore<T>>> =
+        emptyList()
 
-    internal val listTransformationExpression: MutableList<Pair<String, TransformationExpression<T>>> =
-        emptyList<Pair<String, TransformationExpression<T>>>().toMutableList()
+    internal var listTransformationExpression: List<Pair<String, TransformationExpression<T>>> =
+        emptyList()
 
-    internal val listNestedTransformationExpression: MutableList<Pair<String, TransformationExpression<*>>> =
-        emptyList<Pair<String, TransformationExpression<*>>>().toMutableList()
+    internal var listNestedTransformationExpression: List<Pair<String, TransformationExpression<*>>> =
+        emptyList()
 
     fun hasConfiguration(): Boolean = this.listIgnoredExpression.isNotEmpty() ||
         this.listIgnoredAttribute.isNotEmpty() || this.listTransformationExpression.isNotEmpty() || this.listNestedTransformationExpression.isNotEmpty() || this.listMappedAttributes.isNotEmpty()
 
     fun ignoreAtt(srcAtt: String): ConfigMapper<T, R> {
-        if (!listIgnoredAttribute.contains(srcAtt))
-            this.listIgnoredAttribute.add(srcAtt)
+        if (!listIgnoredAttribute.contains(srcAtt)) {
+            val mutableList = this.listIgnoredAttribute.toMutableList()
+            mutableList.add(srcAtt)
+            this.listIgnoredAttribute = mutableList.toList()
+        }
         return this
     }
 
-    fun ignoreIf(srcAttribute: String, expression: ConditionalIgnore<T>): ConfigMapper<T, R> {
+    fun ignoreIf(
+        srcAttribute: String,
+        expression: ConditionalIgnore<T>
+    ): ConfigMapper<T, R> {
         val index = listIgnoredExpression.indexOfFirst {
             it.first == srcAttribute
         }
-        if (index == -1)
-            listIgnoredExpression.add(Pair(srcAttribute, expression))
-        else {
-            val occSrcAttIgnoreIf = listIgnoredExpression.takeWhile {
-                it.first == srcAttribute
-            }.size
-            if (occSrcAttIgnoreIf == 1)
-                listIgnoredExpression[index] = Pair(srcAttribute, expression)
-            else {
-                throw UnSupportedMultipleExpression("ignoreIf")
+        val mutableList = this.listIgnoredExpression.toMutableList()
+        when (index) {
+            -1 -> {
+                mutableList.add(Pair(srcAttribute, expression))
+            }
+            else -> {
+                val occSrcAttIgnoreIf = listIgnoredExpression.takeWhile {
+                    it.first == srcAttribute
+                }.size
+                if (occSrcAttIgnoreIf != 1)
+                    throw UnSupportedMultipleExpression("ignoreIf")
+
+                mutableList[index] = Pair(srcAttribute, expression)
             }
         }
+
+        this.listIgnoredExpression = mutableList.toList()
         return this
     }
 
-    fun transformation(srcAttribute: String, expression: TransformationExpression<T>): ConfigMapper<T, R> {
+    fun transformation(
+        srcAttribute: String,
+        expression: TransformationExpression<T>
+    ): ConfigMapper<T, R> {
         if (listIgnoredAttribute.contains(srcAttribute) || listIgnoredExpression.firstOrNull {
             it.first == srcAttribute
         } != null
@@ -71,18 +85,21 @@ class ConfigMapper<T : Any, R : Any> {
         val index = listTransformationExpression.indexOfFirst {
             it.first == srcAttribute
         }
-        if (index == -1)
-            listTransformationExpression.add(Pair(srcAttribute, expression))
-        else {
-            val occTransformation = listTransformationExpression.takeWhile {
-                it.first == srcAttribute
-            }.size
-            if (occTransformation == 1) {
-                listTransformationExpression[index] = Pair(srcAttribute, expression)
-            } else {
-                throw UnSupportedMultipleExpression("transformation")
+        val mutableList = this.listTransformationExpression.toMutableList()
+        when (index) {
+            -1 -> mutableList.add(Pair(srcAttribute, expression))
+            else -> {
+                val occTransformation = listTransformationExpression.takeWhile {
+                    it.first == srcAttribute
+                }.size
+                if (occTransformation != 1) {
+                    throw UnSupportedMultipleExpression("transformation")
+                }
+                mutableList[index] = Pair(srcAttribute, expression)
             }
         }
+
+        this.listTransformationExpression = mutableList.toMutableList()
         return this
     }
 
@@ -101,31 +118,38 @@ class ConfigMapper<T : Any, R : Any> {
         val index = listNestedTransformationExpression.indexOfFirst {
             it.first == srcAttribute
         }
-        if (index == -1)
-            listNestedTransformationExpression.add(Pair(srcAttribute, expression as TransformationExpression<*>))
-        else {
-            val occTransformation = listNestedTransformationExpression.takeWhile {
-                it.first == srcAttribute
-            }.size
-            if (occTransformation == 1) {
-                listNestedTransformationExpression[index] =
+        val mutableList = this.listNestedTransformationExpression.toMutableList()
+        when (index) {
+            -1 -> mutableList.add(Pair(srcAttribute, expression as TransformationExpression<*>))
+            else -> {
+                val occTransformation = listNestedTransformationExpression.takeWhile {
+                    it.first == srcAttribute
+                }.size
+                if (occTransformation != 1) {
+                    throw UnSupportedMultipleExpression("nested transformation")
+                }
+                mutableList[index] =
                     Pair(srcAttribute, expression as TransformationExpression<*>)
-            } else {
-                throw UnSupportedMultipleExpression("transformation")
             }
         }
+
+        this.listNestedTransformationExpression = mutableList.toList()
         return this
     }
 
-    fun map(srcAttribute: String, destAttribute: String): ConfigMapper<T, R> {
+    fun map(
+        srcAttribute: String,
+        destAttribute: String
+    ): ConfigMapper<T, R> {
         if (listMappedAttributes.firstOrNull {
             it.first == srcAttribute
         } != null
         ) {
             throw IllegalArgumentException("cannot map $srcAttribute to multiple destination field")
         }
-
-        listMappedAttributes.add(Pair(srcAttribute, destAttribute))
+        val mutableList = listMappedAttributes.toMutableList()
+        mutableList.add(Pair(srcAttribute, destAttribute))
+        this.listMappedAttributes = mutableList.toList()
         return this
     }
 }
