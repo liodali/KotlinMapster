@@ -43,6 +43,19 @@ fun <T : Any, R : Any> BaseMapper<T, R>.transformation(
     return base
 }
 
+fun <T : Any, R : Any> BaseMapper<T, R>.inverseTransformation(
+    attribute: String,
+    transformation: TransformationExpression<R>
+): BaseMapper<T, R> {
+    val base = this
+    base.configMapper.apply {
+        this.inverseTransformation(attribute) { e ->
+            transformation(e as R)
+        }
+    }
+    return base
+}
+
 fun <T : Any, R : Any> BaseMapper<T, R>.ignoreIf(
     srcAttribute: String,
     expression: ConditionalIgnore<T>
@@ -126,6 +139,8 @@ private fun <T : Any> T.mapping(
         configMapper.listTransformationExpression as List<Pair<String, TransformationExpression<T>>>
     val listNestedTransformation =
         configMapper.listNestedTransformationExpression as List<Pair<String, TransformationExpression<Any>>>
+    val listInverseTransformation =
+        configMapper.listInverseTransformationExpression as List<Pair<String, TransformationExpression<Any>>>
 
     val fieldsArgs = dest.primaryConstructor!!.parameters.map { kProp ->
 
@@ -148,9 +163,8 @@ private fun <T : Any> T.mapping(
             if (listTransformations.isNotEmpty()) {
                 v = listTransformations.firstOrNull {
                     it.first == field.name
-                }?.let {
-                    val newValue = it.second(this)
-                    newValue
+                }?.let { transformation ->
+                    transformation.second(this)
                 } ?: v
             } else if (listNestedTransformation.isNotEmpty()) {
                 v = listNestedTransformation.firstOrNull {
@@ -165,7 +179,11 @@ private fun <T : Any> T.mapping(
                 } ?: v
             }
         } else {
-            ///TODO("inverse mapping")
+            v = listInverseTransformation.firstOrNull {
+                it.first == field.name
+            }?.let {
+                it.second(this)
+            } ?: v
         }
         if ((kProp.type.classifier as KClass<*>).isData) {
             v = v!!.mapping(kProp.type.classifier as KClass<*>, configMapper, isNested = true)
@@ -229,12 +247,15 @@ class BaseMapper<T : Any, R : Any> : IMapper<T, R> {
         instance.configMapper = configMapper
         return instance as BaseMapper<T, R>
     }
+
     /*
     * [adaptInverse] : method to inverse mapping from R to T
     *
      */
     fun adaptInverse(source: R): T {
-
+        if (configMapper.hasConfiguration()) {
+            return source.mapping(src, configMapper, isBackward = true) as T
+        }
         return source.adaptTo(src) as T
     }
 
