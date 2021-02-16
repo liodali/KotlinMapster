@@ -7,14 +7,11 @@ typealias TransformationExpression<T> = (src: T) -> Any
 * ConfigMapper
 *
 *  give you possible to configure mapper by ignore field or ignore field in specific condition
-* or transform value of specific field
+*  or transform value of specific field
 *
 *
-*
-*
-*
-*
- */
+
+*/
 class ConfigMapper<T : Any, R : Any> {
 
     internal var listIgnoredAttribute: List<String> = emptyList()
@@ -31,8 +28,11 @@ class ConfigMapper<T : Any, R : Any> {
     internal var listNestedTransformationExpression: List<Pair<String, TransformationExpression<*>>> =
         emptyList()
 
+    internal var listInverseTransformationExpression: List<Pair<String, TransformationExpression<*>>> =
+        emptyList()
+
     fun hasConfiguration(): Boolean = this.listIgnoredExpression.isNotEmpty() ||
-        this.listIgnoredAttribute.isNotEmpty() || this.listTransformationExpression.isNotEmpty() || this.listNestedTransformationExpression.isNotEmpty() || this.listMappedAttributes.isNotEmpty()
+            this.listIgnoredAttribute.isNotEmpty() || this.listTransformationExpression.isNotEmpty() || this.listNestedTransformationExpression.isNotEmpty() || this.listMappedAttributes.isNotEmpty()
 
     fun ignoreAtt(srcAtt: String): ConfigMapper<T, R> {
         if (!listIgnoredAttribute.contains(srcAtt)) {
@@ -75,8 +75,8 @@ class ConfigMapper<T : Any, R : Any> {
         expression: TransformationExpression<T>
     ): ConfigMapper<T, R> {
         if (listIgnoredAttribute.contains(srcAttribute) || listIgnoredExpression.firstOrNull {
-            it.first == srcAttribute
-        } != null
+                it.first == srcAttribute
+            } != null
         ) {
             println("Unnecessary transformation for ignore field")
             return this
@@ -108,8 +108,8 @@ class ConfigMapper<T : Any, R : Any> {
         expression: TransformationExpression<K>
     ): ConfigMapper<T, R> {
         if (listIgnoredAttribute.contains(srcAttribute) || listIgnoredExpression.firstOrNull {
-            it.first == srcAttribute
-        } != null
+                it.first == srcAttribute
+            } != null
         ) {
             println("Unnecessary transformation for ignore field")
             return this
@@ -137,13 +137,47 @@ class ConfigMapper<T : Any, R : Any> {
         return this
     }
 
+    fun inverseTransformation(
+        attribute: String,
+        expression: TransformationExpression<R>
+    ): ConfigMapper<T, R> {
+        if (listIgnoredAttribute.contains(attribute) || listIgnoredExpression.firstOrNull {
+                it.first == attribute
+            } != null
+        ) {
+            println("Unnecessary transformation for ignore field")
+            return this
+        }
+
+        val index = listInverseTransformationExpression.indexOfFirst {
+            it.first == attribute
+        }
+        val mutableList = this.listInverseTransformationExpression.toMutableList()
+        when (index) {
+            -1 -> mutableList.add(Pair(attribute, expression as TransformationExpression<*>))
+            else -> {
+                val occTransformation = listInverseTransformationExpression.takeWhile {
+                    it.first == attribute
+                }.size
+                if (occTransformation != 1) {
+                    throw UnSupportedMultipleExpression("nested transformation")
+                }
+                mutableList[index] =
+                    Pair(attribute, expression as TransformationExpression<*>)
+            }
+        }
+
+        this.listInverseTransformationExpression = mutableList.toList()
+        return this
+    }
+
     fun map(
         srcAttribute: String,
         destAttribute: String
     ): ConfigMapper<T, R> {
         if (listMappedAttributes.firstOrNull {
-            it.first == srcAttribute
-        } != null
+                it.first == srcAttribute
+            } != null
         ) {
             throw IllegalArgumentException("cannot map $srcAttribute to multiple destination field")
         }
