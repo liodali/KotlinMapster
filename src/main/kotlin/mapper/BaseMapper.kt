@@ -145,8 +145,14 @@ private fun <T : Any> T.mapping(
     val fieldsArgs = dest.primaryConstructor!!.parameters.map { kProp ->
 
         val nameMapper: String? = listMappedAtt.firstOrNull { m ->
-            m.second == kProp.name
-        }?.first
+            if (isBackward) m.first == kProp.name else m.second == kProp.name
+        }?.let {
+            if (isBackward)
+                it.second
+            else
+                it.first
+        }
+
 
         val (value, field) = this.getFieldValue((this::class as KClass<Any>), kProp.name!!, nameMapper)
 
