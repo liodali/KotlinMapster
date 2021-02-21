@@ -71,11 +71,11 @@ class ConfigMapper<T : Any, R : Any> {
     }
 
     fun transformation(
-        srcAttribute: String,
+        attribute: String,
         expression: TransformationExpression<T>
     ): ConfigMapper<T, R> {
-        if (listIgnoredAttribute.contains(srcAttribute) || listIgnoredExpression.firstOrNull {
-                it.first == srcAttribute
+        if (listIgnoredAttribute.contains(attribute) || listIgnoredExpression.firstOrNull {
+                it.first == attribute
             } != null
         ) {
             println("Unnecessary transformation for ignore field")
@@ -83,19 +83,19 @@ class ConfigMapper<T : Any, R : Any> {
         }
 
         val index = listTransformationExpression.indexOfFirst {
-            it.first == srcAttribute
+            it.first == attribute
         }
         val mutableList = this.listTransformationExpression.toMutableList()
         when (index) {
-            -1 -> mutableList.add(Pair(srcAttribute, expression))
+            -1 -> mutableList.add(Pair(attribute, expression))
             else -> {
                 val occTransformation = listTransformationExpression.takeWhile {
-                    it.first == srcAttribute
+                    it.first == attribute
                 }.size
                 if (occTransformation != 1) {
                     throw UnSupportedMultipleExpression("transformation")
                 }
-                mutableList[index] = Pair(srcAttribute, expression)
+                mutableList[index] = Pair(attribute, expression)
             }
         }
 

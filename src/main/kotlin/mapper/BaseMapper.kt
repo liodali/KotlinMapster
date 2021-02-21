@@ -42,16 +42,16 @@ fun <T : Any, R : Any> BaseMapper<T, R>.mapTo(
 }
 
 fun <T : Any, R : Any> BaseMapper<T, R>.transformation(
-    srcAttribute: String,
+    attribute: String,
     transformation: TransformationExpression<T>
 ): BaseMapper<T, R> {
     val base = this
     base.configMapper.apply {
-        this.transformation(srcAttribute) {
+        this.transformation(attribute) {
             transformation(it as T)
         }
     }
-    return base
+    return base as BaseMapper<T, R>
 }
 
 fun <T : Any, R : Any> BaseMapper<T, R>.inverseTransformation(
@@ -184,7 +184,7 @@ private fun <T : Any> T.mapping(
         } else if (!isBackward) {
             if (listTransformations.isNotEmpty()) {
                 v = listTransformations.firstOrNull {
-                    it.first == field.name
+                    it.first == field.name || it.first == kProp.name
                 }?.let { transformation ->
                     transformation.second(this)
                 } ?: v
