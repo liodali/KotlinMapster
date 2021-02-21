@@ -16,7 +16,7 @@ class ConfigMapper<T : Any, R : Any> {
 
     internal var listIgnoredAttribute: List<String> = emptyList()
 
-    internal var listMappedAttributes: List<Pair<String, String>> =
+    internal var listMappedAttributes: List<Pair<Array<String>, String>> =
         emptyList()
 
     internal var listIgnoredExpression: List<Pair<String, ConditionalIgnore<T>>> =
@@ -172,17 +172,17 @@ class ConfigMapper<T : Any, R : Any> {
     }
 
     fun map(
-        srcAttribute: String,
-        destAttribute: String
+        from: Array<String>,
+        to: String
     ): ConfigMapper<T, R> {
         if (listMappedAttributes.firstOrNull {
-                it.first == srcAttribute
+                it.first.toMutableList().containsAll(from.toMutableList())
             } != null
         ) {
-            throw IllegalArgumentException("cannot map $srcAttribute to multiple destination field")
+            throw IllegalArgumentException("cannot map $from to multiple destination field")
         }
         val mutableList = listMappedAttributes.toMutableList()
-        mutableList.add(Pair(srcAttribute, destAttribute))
+        mutableList.add(Pair(from, to))
         this.listMappedAttributes = mutableList.toList()
         return this
     }
