@@ -19,13 +19,24 @@ fun <T : Any, R : Any> BaseMapper<T, R>.ignore(
     return base
 }
 
-fun <T : Any, R : Any> BaseMapper<T, R>.mapTo(
-    srcAttribute: String,
-    destAttribute: String
+fun <T : Any, R : Any> BaseMapper<T, R>.mapMultiple(
+    from: Array<String>,
+    to: String
 ): BaseMapper<T, R> {
     val base = this
     base.configMapper.apply {
-        this.map(srcAttribute, destAttribute)
+        this.map(from, to)
+    }
+    return base
+}
+
+fun <T : Any, R : Any> BaseMapper<T, R>.mapTo(
+    from: String,
+    to: String
+): BaseMapper<T, R> {
+    val base = this
+    base.configMapper.apply {
+        this.map(arrayOf(from), to)
     }
     return base
 }
@@ -97,14 +108,19 @@ internal fun Any.getParentFieldValue(
 internal fun Any.getFieldValue(
     src: KClass<Any>,
     destName: String,
-    mappedName: String?,
+    mappedName: Any?,
     prop: KProperty1<Any, *>? = null,
     isNested: Boolean = false,
 ): Pair<Any?, KProperty1<Any, *>> {
     val field = src.declaredMemberProperties.firstOrNull {
-        val name = mappedName ?: destName
-        it.name == name
+        if (mappedName is Array<*>) {
+            mappedName.contains(it.name)
+        } else {
+            val name = mappedName ?: destName
+            it.name == name
+        }
     }
+
     if (field == null) {
         src.declaredMemberProperties.forEach { p ->
             if ((p.returnType.classifier as KClass<*>).isData) {
@@ -134,7 +150,7 @@ private fun <T : Any> T.mapping(
     val listExpressions: List<Pair<String, ConditionalIgnore<T>>> =
         configMapper.listIgnoredExpression as List<Pair<String, ConditionalIgnore<T>>>
     val listAtt: List<String> = configMapper.listIgnoredAttribute
-    val listMappedAtt: List<Pair<String, String>> = configMapper.listMappedAttributes
+    val listMappedAtt: List<Pair<Array<String>, String>> = configMapper.listMappedAttributes
     val listTransformations =
         configMapper.listTransformationExpression as List<Pair<String, TransformationExpression<T>>>
     val listNestedTransformation =
@@ -144,8 +160,8 @@ private fun <T : Any> T.mapping(
 
     val fieldsArgs = dest.primaryConstructor!!.parameters.map { kProp ->
 
-        val nameMapper: String? = listMappedAtt.firstOrNull { m ->
-            if (isBackward) m.first == kProp.name else m.second == kProp.name
+        val nameMapper: Any? = listMappedAtt.firstOrNull { m ->
+            if (isBackward) m.first.contains(kProp.name) else m.second == kProp.name
         }?.let {
             if (isBackward)
                 it.second
@@ -160,7 +176,7 @@ private fun <T : Any> T.mapping(
         val isIgnore = listExpressions.map {
             !it.second(this) && field.name == it.first
         }.firstOrNull { it } != null || listAtt.contains(field.name)
-        if (isIgnore) {
+        if (isIgnore && !isBackward) {
             if (kProp.type.isMarkedNullable) {
                 v = null
             } else
@@ -185,14 +201,17 @@ private fun <T : Any> T.mapping(
                 } ?: v
             }
         } else {
-            v = listInverseTransformation.firstOrNull {
-                it.first == field.name
-            }?.let {
-                it.second(this)
-            } ?: v
+            if (listInverseTransformation.isNotEmpty()) {
+                v = listInverseTransformation.firstOrNull {
+                    it.first == kProp.name
+                }?.let {
+                    it.second(this)
+                } ?: v
+            }
+
         }
         if ((kProp.type.classifier as KClass<*>).isData) {
-            v = v!!.mapping(kProp.type.classifier as KClass<*>, configMapper, isNested = true)
+            v = v!!.mapping(kProp.type.classifier as KClass<*>, configMapper, isNested = true, isBackward = isBackward)
         } else {
             if ((kProp.type.classifier as KClass<*>).superclasses.contains(Collection::class)) {
                 val typeDest = (kProp.type).arguments.first().type!!.classifier as KClass<*>
@@ -200,6 +219,7 @@ private fun <T : Any> T.mapping(
                     .from((kProp.type.classifier as KClass<*>))
                 baseList.newConfig(configMapper)
                 baseList.isNested = true
+                baseList.isBackward = isBackward
                 v = baseList.to(typeDest).adaptList(v as List<Nothing>)
             }
         }
@@ -228,6 +248,7 @@ class BaseMapper<T : Any, R : Any> : IMapper<T, R> {
     private var sourceListData: List<T>? = null
 
     internal var isNested = false
+    internal var isBackward = false
 
     var configMapper: ConfigMapper<*, *> = ConfigMapper<Any, Any>()
         private set
