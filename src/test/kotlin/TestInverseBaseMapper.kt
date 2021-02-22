@@ -1,7 +1,10 @@
 import io.github.serpro69.kfaker.Faker
-import mapper.*
+import mapper.BaseMapper
+import mapper.inverseTransformation
+import mapper.mapMultiple
+import mapper.mapTo
+import mapper.transformation
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 
 class TestInverseBaseMapper {
     private val faker = Faker()
@@ -63,7 +66,7 @@ class TestInverseBaseMapper {
             ) { dto ->
                 dto.fullName.split(" ").last()
             }
-            .mapMultiple(arrayOf("firstName","lastName"), "fullName")
+            .mapMultiple(arrayOf("firstName", "lastName"), "fullName")
         val dto = mapper.adapt()
         assert(dto == UserDTO(fullName = "$name $lastName", password = pwd))
         val orignalObject = mapper.adaptInverse(dto)

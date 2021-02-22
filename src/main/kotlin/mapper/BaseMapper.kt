@@ -11,13 +11,13 @@ import kotlin.reflect.full.superclasses
 fun <T : Any, R : Any> BaseMapper<T, R>.ignore(
     srcAttribute: String
 ):
-        BaseMapper<T, R> {
-    val base = this
-    base.configMapper.apply {
-        this.ignoreAtt(srcAttribute)
+    BaseMapper<T, R> {
+        val base = this
+        base.configMapper.apply {
+            this.ignoreAtt(srcAttribute)
+        }
+        return base
     }
-    return base
-}
 
 fun <T : Any, R : Any> BaseMapper<T, R>.mapMultiple(
     from: Array<String>,
@@ -169,7 +169,6 @@ private fun <T : Any> T.mapping(
                 it.first
         }
 
-
         val (value, field) = this.getFieldValue((this::class as KClass<Any>), kProp.name!!, nameMapper)
 
         var v: Any? = value
@@ -208,7 +207,6 @@ private fun <T : Any> T.mapping(
                     it.second(this)
                 } ?: v
             }
-
         }
         if ((kProp.type.classifier as KClass<*>).isData) {
             v = v!!.mapping(kProp.type.classifier as KClass<*>, configMapper, isNested = true, isBackward = isBackward)
