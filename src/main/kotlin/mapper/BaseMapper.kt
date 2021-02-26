@@ -113,11 +113,14 @@ internal fun Any.getFieldValue(
     isNested: Boolean = false,
 ): Pair<Any?, KProperty1<Any, *>> {
     val field = src.declaredMemberProperties.firstOrNull {
-        if (mappedName is Array<*>) {
-            mappedName.contains(it.name)
-        } else {
-            val name = mappedName ?: destName
-            it.name == name
+        when (mappedName) {
+            is Array<*> -> {
+                mappedName.contains(it.name)
+            }
+            else -> {
+                val name = mappedName ?: destName
+                it.name == name
+            }
         }
     }
 
@@ -147,16 +150,24 @@ private fun <T : Any> T.mapping(
     isBackward: Boolean = false
 ): Any {
 
-    val listExpressions: List<Pair<String, ConditionalIgnore<T>>> =
+    val listExpressions: List<Pair<String, ConditionalIgnore<T>>> by lazy {
         configMapper.listIgnoredExpression as List<Pair<String, ConditionalIgnore<T>>>
-    val listAtt: List<String> = configMapper.listIgnoredAttribute
-    val listMappedAtt: List<Pair<Array<String>, String>> = configMapper.listMappedAttributes
-    val listTransformations =
+    }
+    val listAtt: List<String> by lazy {
+        configMapper.listIgnoredAttribute
+    }
+    val listMappedAtt: List<Pair<Array<String>, String>> by lazy {
+        configMapper.listMappedAttributes
+    }
+    val listTransformations by lazy {
         configMapper.listTransformationExpression as List<Pair<String, TransformationExpression<T>>>
-    val listNestedTransformation =
+    }
+    val listNestedTransformation by lazy {
         configMapper.listNestedTransformationExpression as List<Pair<String, TransformationExpression<Any>>>
-    val listInverseTransformation =
+    }
+    val listInverseTransformation by lazy {
         configMapper.listInverseTransformationExpression as List<Pair<String, TransformationExpression<Any>>>
+    }
 
     val fieldsArgs = dest.primaryConstructor!!.parameters.map { kProp ->
 
@@ -175,43 +186,54 @@ private fun <T : Any> T.mapping(
         val isIgnore = listExpressions.map {
             !it.second(this) && field.name == it.first
         }.firstOrNull { it } != null || listAtt.contains(field.name)
-        if (isIgnore && !isBackward) {
-            if (kProp.type.isMarkedNullable) {
+
+        when {
+            isIgnore && !isBackward -> {
+                if (!kProp.type.isMarkedNullable) {
+                    throw IllegalArgumentException("you cannot ignore non nullable field")
+                }
                 v = null
-            } else
-                throw IllegalArgumentException("you cannot ignore non nullable field")
-        } else if (!isBackward) {
-            if (listTransformations.isNotEmpty()) {
-                v = listTransformations.firstOrNull {
-                    it.first == field.name || it.first == kProp.name
-                }?.let { transformation ->
-                    transformation.second(this)
-                } ?: v
-            } else if (listNestedTransformation.isNotEmpty()) {
-                v = listNestedTransformation.firstOrNull {
-                    it.first == field.name
-                }?.let { pair ->
-                    val nestedV: Any? = if (isNested) {
-                        this
-                    } else {
-                        this.getParentFieldValue((this::class as KClass<Any>), pair.first)
-                    }
-                    pair.second(nestedV!!)
-                } ?: v
             }
-        } else {
-            if (listInverseTransformation.isNotEmpty()) {
-                v = listInverseTransformation.firstOrNull {
-                    it.first == kProp.name
-                }?.let {
-                    it.second(this)
-                } ?: v
+            !isIgnore && !isBackward -> {
+                if (listTransformations.isNotEmpty()) {
+                    v = listTransformations.firstOrNull {
+                        it.first == field.name || it.first == kProp.name
+                    }?.let { transformation ->
+                        transformation.second(this)
+                    } ?: v
+                } else if (listNestedTransformation.isNotEmpty()) {
+                    v = listNestedTransformation.firstOrNull {
+                        it.first == field.name
+                    }?.let { pair ->
+                        val nestedV: Any? = if (isNested) {
+                            this
+                        } else {
+                            this.getParentFieldValue((this::class as KClass<Any>), pair.first)
+                        }
+                        pair.second(nestedV!!)
+                    } ?: v
+                }
+            }
+            else -> {
+                if (listInverseTransformation.isNotEmpty()) {
+                    v = listInverseTransformation.firstOrNull {
+                        it.first == kProp.name
+                    }?.let {
+                        it.second(this)
+                    } ?: v
+                }
             }
         }
-        if ((kProp.type.classifier as KClass<*>).isData) {
-            v = v!!.mapping(kProp.type.classifier as KClass<*>, configMapper, isNested = true, isBackward = isBackward)
-        } else {
-            if ((kProp.type.classifier as KClass<*>).superclasses.contains(Collection::class)) {
+        when {
+            (kProp.type.classifier as KClass<*>).isData -> {
+                v = v!!.mapping(
+                    kProp.type.classifier as KClass<*>,
+                    configMapper,
+                    isNested = true,
+                    isBackward = isBackward,
+                )
+            }
+            (kProp.type.classifier as KClass<*>).superclasses.contains(Collection::class) -> {
                 val typeDest = (kProp.type).arguments.first().type!!.classifier as KClass<*>
                 val baseList: BaseMapper<*, *> = BaseMapper<Any, Any>()
                     .from((kProp.type.classifier as KClass<*>))
@@ -276,7 +298,7 @@ class BaseMapper<T : Any, R : Any> : IMapper<T, R> {
     /*
     * [adaptInverse] : method to inverse mapping from R to T
     *
-     */
+    */
     fun adaptInverse(source: R): T {
         if (configMapper.hasConfiguration()) {
             return source.mapping(src, configMapper, isBackward = true) as T
