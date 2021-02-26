@@ -1,5 +1,7 @@
 package mapper
 
+import kotlin.properties.Delegates
+
 typealias ConditionalIgnore<T> = (src: T) -> Boolean
 typealias TransformationExpression<T> = (src: T) -> Any
 
@@ -14,25 +16,32 @@ typealias TransformationExpression<T> = (src: T) -> Any
 */
 class ConfigMapper<T : Any, R : Any> {
 
-    internal var listIgnoredAttribute: List<String> = emptyList()
+    internal var listIgnoredAttribute: List<String> by Delegates.observable(emptyList()) { _, _, newList ->
+       if(newList.isNotEmpty()) hasConfig = true
+    }
 
-    internal var listMappedAttributes: List<Pair<Array<String>, String>> =
-        emptyList()
+    internal var listMappedAttributes: List<Pair<Array<String>, String>> by Delegates.observable(emptyList()) { _, _, newList ->
+        if(newList.isNotEmpty())  hasConfig = true
+    }
 
-    internal var listIgnoredExpression: List<Pair<String, ConditionalIgnore<T>>> =
-        emptyList()
+    internal var listIgnoredExpression: List<Pair<String, ConditionalIgnore<T>>> by Delegates.observable(emptyList()) { _, _, newList ->
+        if(newList.isNotEmpty())   hasConfig = true
+    }
 
-    internal var listTransformationExpression: List<Pair<String, TransformationExpression<T>>> =
-        emptyList()
+    internal var listTransformationExpression: List<Pair<String, TransformationExpression<T>>> by Delegates.observable(emptyList()) { _, _, newList ->
+        if(newList.isNotEmpty())   hasConfig = true
+    }
 
-    internal var listNestedTransformationExpression: List<Pair<String, TransformationExpression<*>>> =
-        emptyList()
+    internal var listNestedTransformationExpression: List<Pair<String, TransformationExpression<*>>> by Delegates.observable(emptyList()) { _, _, newList ->
+        if(newList.isNotEmpty())  hasConfig = true
+    }
+    internal var listInverseTransformationExpression: List<Pair<String, TransformationExpression<*>>> by Delegates.observable(emptyList()) { _, _, newList ->
+        if(newList.isNotEmpty())  hasConfig = true
+    }
 
-    internal var listInverseTransformationExpression: List<Pair<String, TransformationExpression<*>>> =
-        emptyList()
+    private var hasConfig: Boolean = false
 
-    fun hasConfiguration(): Boolean = this.listIgnoredExpression.isNotEmpty() ||
-        this.listIgnoredAttribute.isNotEmpty() || this.listTransformationExpression.isNotEmpty() || this.listNestedTransformationExpression.isNotEmpty() || this.listMappedAttributes.isNotEmpty()
+    fun hasConfiguration(): Boolean = hasConfig
 
     fun ignoreAtt(srcAtt: String): ConfigMapper<T, R> {
         if (!listIgnoredAttribute.contains(srcAtt)) {
@@ -44,8 +53,8 @@ class ConfigMapper<T : Any, R : Any> {
     }
 
     fun ignoreIf(
-        srcAttribute: String,
-        expression: ConditionalIgnore<T>
+            srcAttribute: String,
+            expression: ConditionalIgnore<T>
     ): ConfigMapper<T, R> {
         val index = listIgnoredExpression.indexOfFirst {
             it.first == srcAttribute
@@ -71,12 +80,12 @@ class ConfigMapper<T : Any, R : Any> {
     }
 
     fun transformation(
-        attribute: String,
-        expression: TransformationExpression<T>
+            attribute: String,
+            expression: TransformationExpression<T>
     ): ConfigMapper<T, R> {
         if (listIgnoredAttribute.contains(attribute) || listIgnoredExpression.firstOrNull {
-            it.first == attribute
-        } != null
+                    it.first == attribute
+                } != null
         ) {
             println("Unnecessary transformation for ignore field")
             return this
@@ -104,12 +113,12 @@ class ConfigMapper<T : Any, R : Any> {
     }
 
     fun <K : Any> nestedTransformation(
-        srcAttribute: String,
-        expression: TransformationExpression<K>
+            srcAttribute: String,
+            expression: TransformationExpression<K>
     ): ConfigMapper<T, R> {
         if (listIgnoredAttribute.contains(srcAttribute) || listIgnoredExpression.firstOrNull {
-            it.first == srcAttribute
-        } != null
+                    it.first == srcAttribute
+                } != null
         ) {
             println("Unnecessary transformation for ignore field")
             return this
@@ -129,7 +138,7 @@ class ConfigMapper<T : Any, R : Any> {
                     throw UnSupportedMultipleExpression("nested transformation")
                 }
                 mutableList[index] =
-                    Pair(srcAttribute, expression as TransformationExpression<*>)
+                        Pair(srcAttribute, expression as TransformationExpression<*>)
             }
         }
 
@@ -138,12 +147,12 @@ class ConfigMapper<T : Any, R : Any> {
     }
 
     fun inverseTransformation(
-        attribute: String,
-        expression: TransformationExpression<R>
+            attribute: String,
+            expression: TransformationExpression<R>
     ): ConfigMapper<T, R> {
         if (listIgnoredAttribute.contains(attribute) || listIgnoredExpression.firstOrNull {
-            it.first == attribute
-        } != null
+                    it.first == attribute
+                } != null
         ) {
             println("Unnecessary transformation for ignore field")
             return this
@@ -163,7 +172,7 @@ class ConfigMapper<T : Any, R : Any> {
                     throw UnSupportedMultipleExpression("nested transformation")
                 }
                 mutableList[index] =
-                    Pair(attribute, expression as TransformationExpression<*>)
+                        Pair(attribute, expression as TransformationExpression<*>)
             }
         }
 
@@ -172,12 +181,12 @@ class ConfigMapper<T : Any, R : Any> {
     }
 
     fun map(
-        from: Array<String>,
-        to: String
+            from: Array<String>,
+            to: String
     ): ConfigMapper<T, R> {
         if (listMappedAttributes.firstOrNull {
-            it.first.toMutableList().containsAll(from.toMutableList())
-        } != null
+                    it.first.toMutableList().containsAll(from.toMutableList())
+                } != null
         ) {
             throw IllegalArgumentException("cannot map $from to multiple destination field")
         }
