@@ -11,13 +11,13 @@ import kotlin.reflect.full.superclasses
 fun <T : Any, R : Any> BaseMapper<T, R>.ignore(
     srcAttribute: String
 ):
-    BaseMapper<T, R> {
-        val base = this
-        base.configMapper.apply {
-            this.ignoreAtt(srcAttribute)
-        }
-        return base
+        BaseMapper<T, R> {
+    val base = this
+    base.configMapper.apply {
+        this.ignoreAtt(srcAttribute)
     }
+    return base
+}
 
 fun <T : Any, R : Any> BaseMapper<T, R>.mapMultiple(
     from: Array<String>,
@@ -240,7 +240,14 @@ private fun <T : Any> T.mapping(
                 baseList.newConfig(configMapper)
                 baseList.isNested = true
                 baseList.isBackward = isBackward
-                v = baseList.to(typeDest).adaptList(v as List<Nothing>)
+                v = when (isBackward) {
+                    true -> {
+                        baseList.to(typeDest).adaptListInverse(v as List<Nothing>)
+                    }
+                    else -> {
+                        baseList.to(typeDest).adaptList(v as List<Nothing>)
+                    }
+                }
             }
         }
         v
@@ -251,11 +258,22 @@ private fun <T : Any> T.mapping(
 class BaseMapper<T : Any, R : Any> : IMapper<T, R> {
     constructor() {
         instance = this
+
     }
 
     private constructor(sourceList: List<T>?, source: T?) : this() {
         this.sourceListData = sourceList
         this.sourceData = source
+        when {
+            source != null -> {
+                this.from(source::class)
+
+            }
+            sourceList != null && sourceList.isNotEmpty() -> {
+                src = (sourceList::class as KClass<*>).memberProperties.first()
+                    .returnType.arguments.first().type!!.classifier as KClass<*>
+            }
+        }
     }
 
     private constructor(sourceList: List<T>) : this(sourceList, null)
@@ -284,8 +302,8 @@ class BaseMapper<T : Any, R : Any> : IMapper<T, R> {
         fun <T : Any> fromList(list: List<T>): BaseMapper<T, Any> {
             instance = BaseMapper<T, Any>(list)
             instance.configMapper = ConfigMapper<T, Any>()
-            val typeData = (list::class as KClass<T>).memberProperties.first()
-                .returnType.arguments.first().type!!.classifier as KClass<T>
+            val typeData = (list::class as KClass<*>).memberProperties.first()
+                .returnType.arguments.first().type!!.classifier as KClass<*>
             return instance.from(typeData) as BaseMapper<T, Any>
         }
     }
@@ -301,7 +319,8 @@ class BaseMapper<T : Any, R : Any> : IMapper<T, R> {
     */
     fun adaptInverse(source: R): T {
         if (configMapper.hasConfiguration()) {
-            return source.mapping(src, configMapper, isBackward = true) as T
+            this.isBackward = true
+            return (source.mapping(src, configMapper, isBackward = isBackward) as T)
         }
         return source.adaptTo(src) as T
     }
@@ -315,6 +334,7 @@ class BaseMapper<T : Any, R : Any> : IMapper<T, R> {
         }
         sourceData = source
         if (configMapper.hasConfiguration()) {
+            this.isBackward = false
             return sourceData!!.mapping(dest!!, configMapper) as R
         }
         return sourceData!!.adaptTo(dest!!) as R
@@ -335,11 +355,40 @@ class BaseMapper<T : Any, R : Any> : IMapper<T, R> {
         if (configMapper.hasConfiguration()) {
             val list = emptyList<R>().toMutableList()
             sourceListData!!.forEach {
-                list.add(it!!.mapping(dest!!, configMapper, isNested = isNested) as R)
+                list.add(it.mapping(dest!!, configMapper, isNested = isNested) as R)
             }
             return list.toList()
         }
         return sourceListData!!.adaptListTo(dest!!) as List<R>
+    }
+
+    fun adaptListInverse(listSource: List<R>): List<T> {
+
+        if (dest == null) {
+            throw UndefinedDestinationObject
+        }
+        if (listSource.isEmpty()) {
+            return emptyList()
+        }
+        if (configMapper.hasConfiguration()) {
+            val list = emptyList<T>().toMutableList()
+            listSource.forEach { source ->
+                this.isBackward = true
+                val inverseValue = this.adaptInverse(source)
+                list.add(inverseValue)
+//                list.add(
+//                    it.mapping(
+//                        src,
+//                        configMapper,
+//                        isNested = isNested,
+//                        isBackward = true
+//                    ) as T
+//                )
+            }
+            this.isBackward = false
+            return list.toList()
+        }
+        return listSource.adaptListTo(src) as List<T>
     }
 
     fun <K : Any> nestedTransformation(
