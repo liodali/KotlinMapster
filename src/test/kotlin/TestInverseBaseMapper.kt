@@ -53,7 +53,8 @@ class TestInverseBaseMapper {
         val user = User(name, lastName, password = pwd)
 
         val mapper = BaseMapper.from(user)
-            .to(UserDTO::class).transformation(
+            .to(UserDTO::class)
+            .transformation(
                 "fullName"
             ) { user ->
                 user.firstName + " " + user.lastName
@@ -71,5 +72,44 @@ class TestInverseBaseMapper {
         assert(dto == UserDTO(fullName = "$name $lastName", password = pwd))
         val orignalObject = mapper.adaptInverse(dto)
         assert(orignalObject == user)
+    }
+
+
+    @Test
+    fun testInverseListMapping() {
+        data class User(val firstName: String, val lastName: String, val password: String)
+        data class UserDTO(val fullName: String, val password: String)
+
+        val listUser = emptyList<User>().toMutableList()
+
+        (1..3).forEach { _ ->
+
+            val name = faker.name.firstName()
+            val lastName = faker.name.lastName()
+            val pwd = "1234"
+            listUser.add(User(name, lastName, password = pwd))
+        }
+        val mapper = BaseMapper<User,UserDTO>()
+            .from(User::class)
+            .to(UserDTO::class)
+            .transformation(
+                "fullName"
+            ) { user ->
+                user.firstName + " " + user.lastName
+            }.inverseTransformation(
+                "firstName"
+            ) { dto ->
+                dto.fullName.split(" ").first()
+            }.inverseTransformation(
+                "lastName"
+            ) { dto ->
+                dto.fullName.split(" ").last()
+            }
+            .mapMultiple(arrayOf("firstName", "lastName"), "fullName")
+
+        val listDTOs = mapper.adaptList(listUser)
+
+        val listInverse = mapper.adaptListInverse(listDTOs)
+        assert(listInverse == listUser)
     }
 }
