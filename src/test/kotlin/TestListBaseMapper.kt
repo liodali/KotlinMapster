@@ -66,9 +66,16 @@ class TestListBaseMapper {
             val pwd = "1234"
             val nameAdr = faker.address.streetName()
             val country = faker.address.country()
-            users.add(User(name, password = pwd, listAdr = listOf(Address(nameAdr, country))))
+            users.add(
+                User(
+                    name,
+                    password = pwd,
+                    listAdr = listOf(Address(nameAdr, country))
+                )
+            )
         }
-        val mapper: IMapper<User, UserDTO> = BaseMapper<User, UserDTO>().to(UserDTO::class)
+        val mapper: IMapper<User, UserDTO> = BaseMapper<User, UserDTO>()
+            .to(UserDTO::class)
             .nestedTransformation<Address>(srcAttribute = "country") {
                 it.country.subSequence(0, 3)
             }
