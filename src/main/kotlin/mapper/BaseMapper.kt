@@ -172,15 +172,21 @@ private fun <T : Any> T.mapping(
     val fieldsArgs = dest.primaryConstructor!!.parameters.map { kProp ->
 
         val nameMapper: Any? = listMappedAtt.firstOrNull { m ->
-            if (isBackward) m.first.contains(kProp.name) else m.second == kProp.name
+            when {
+                isBackward -> m.first.contains(kProp.name)
+
+                else -> m.second == kProp.name
+            }
         }?.let {
-            if (isBackward)
-                it.second
-            else
-                it.first
+            when {
+                isBackward -> it.second
+                else -> it.first
+            }
+
         }
 
         val (value, field) = this.getFieldValue((this::class as KClass<Any>), kProp.name!!, nameMapper)
+
 
         var v: Any? = value
         val isIgnore = listExpressions.map {
@@ -226,10 +232,17 @@ private fun <T : Any> T.mapping(
         }
         when {
             (kProp.type.classifier as KClass<*>).isData -> {
-                v = v!!.mapping(
+                v = if (v!!::class.isData)
+                    v.mapping(
+                        kProp.type.classifier as KClass<*>,
+                        configMapper,
+                        isNested = true,
+                        isBackward = isBackward,
+                    )
+                else this.mapping(
                     kProp.type.classifier as KClass<*>,
                     configMapper,
-                    isNested = true,
+                    isNested = false,
                     isBackward = isBackward,
                 )
             }
