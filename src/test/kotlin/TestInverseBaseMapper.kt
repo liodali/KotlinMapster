@@ -1,5 +1,8 @@
 import io.github.serpro69.kfaker.Faker
 import mapper.BaseMapper
+import mapper.IMapper
+import mapper.adaptList
+import mapper.adaptListInverse
 import mapper.inverseTransformation
 import mapper.mapMultiple
 import mapper.mapTo
@@ -56,8 +59,8 @@ class TestInverseBaseMapper {
             .to(UserDTO::class)
             .transformation(
                 "fullName"
-            ) { user ->
-                user.firstName + " " + user.lastName
+            ) { u ->
+                u.firstName + " " + u.lastName
             }.inverseTransformation(
                 "firstName"
             ) { dto ->
@@ -73,7 +76,6 @@ class TestInverseBaseMapper {
         val orignalObject = mapper.adaptInverse(dto)
         assert(orignalObject == user)
     }
-
 
     @Test
     fun testInverseNestedDataMapping() {
@@ -104,7 +106,8 @@ class TestInverseBaseMapper {
         val countryAddress = faker.address.country()
 
         val user = User(
-            name, lastName,
+            name,
+            lastName,
             password = pwd,
             address = Address(
                 streetAddress,
@@ -146,11 +149,9 @@ class TestInverseBaseMapper {
             .mapTo("address", "fullAddress")
             .mapMultiple(arrayOf("street", "city", "country"), "fullAddress")
 
-
         val dto = mapper.adapt()
         val orignalObject = mapper.adaptInverse(dto)
         assert(orignalObject == user)
-
     }
 
     @Test
@@ -167,7 +168,7 @@ class TestInverseBaseMapper {
             val pwd = "1234"
             listUser.add(User(name, lastName, password = pwd))
         }
-        val mapper = BaseMapper<User, UserDTO>()
+        val mapper: IMapper<User, UserDTO> = BaseMapper<User, UserDTO>()
             .from(User::class)
             .to(UserDTO::class)
             .transformation(
