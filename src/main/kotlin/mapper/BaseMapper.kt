@@ -11,13 +11,13 @@ import kotlin.reflect.full.superclasses
 fun <T : Any, R : Any> BaseMapper<T, R>.ignore(
     srcAttribute: String
 ):
-        BaseMapper<T, R> {
-    val base = this
-    base.configMapper.apply {
-        this.ignoreAtt(srcAttribute)
+    BaseMapper<T, R> {
+        val base = this
+        base.configMapper.apply {
+            this.ignoreAtt(srcAttribute)
+        }
+        return base
     }
-    return base
-}
 
 fun <T : Any, R : Any> BaseMapper<T, R>.mapMultiple(
     from: Array<String>,
@@ -182,11 +182,9 @@ private fun <T : Any> T.mapping(
                 isBackward -> it.second
                 else -> it.first
             }
-
         }
 
         val (value, field) = this.getFieldValue((this::class as KClass<Any>), kProp.name!!, nameMapper)
-
 
         var v: Any? = value
         val isIgnore = listExpressions.map {
@@ -271,7 +269,6 @@ private fun <T : Any> T.mapping(
 class BaseMapper<T : Any, R : Any> : IMapper<T, R> {
     constructor() {
         instance = this
-
     }
 
     private constructor(sourceList: List<T>?, source: T?) : this() {
@@ -280,7 +277,6 @@ class BaseMapper<T : Any, R : Any> : IMapper<T, R> {
         when {
             source != null -> {
                 this.from(source::class)
-
             }
             sourceList != null && sourceList.isNotEmpty() -> {
                 src = (sourceList::class as KClass<*>).memberProperties.first()
