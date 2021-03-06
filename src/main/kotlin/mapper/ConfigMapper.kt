@@ -1,5 +1,7 @@
 package mapper
 
+import kotlin.properties.Delegates
+
 typealias ConditionalIgnore<T> = (src: T) -> Boolean
 typealias TransformationExpression<T> = (src: T) -> Any
 
@@ -14,25 +16,32 @@ typealias TransformationExpression<T> = (src: T) -> Any
 */
 class ConfigMapper<T : Any, R : Any> {
 
-    internal var listIgnoredAttribute: List<String> = emptyList()
+    internal var listIgnoredAttribute: List<String> by Delegates.observable(emptyList()) { _, _, newList ->
+        if (newList.isNotEmpty()) hasConfig = true
+    }
 
-    internal var listMappedAttributes: List<Pair<Array<String>, String>> =
-        emptyList()
+    internal var listMappedAttributes: List<Pair<Array<String>, String>> by Delegates.observable(emptyList()) { _, _, newList ->
+        if (newList.isNotEmpty()) hasConfig = true
+    }
 
-    internal var listIgnoredExpression: List<Pair<String, ConditionalIgnore<T>>> =
-        emptyList()
+    internal var listIgnoredExpression: List<Pair<String, ConditionalIgnore<T>>> by Delegates.observable(emptyList()) { _, _, newList ->
+        if (newList.isNotEmpty()) hasConfig = true
+    }
 
-    internal var listTransformationExpression: List<Pair<String, TransformationExpression<T>>> =
-        emptyList()
+    internal var listTransformationExpression: List<Pair<String, TransformationExpression<T>>> by Delegates.observable(emptyList()) { _, _, newList ->
+        if (newList.isNotEmpty()) hasConfig = true
+    }
 
-    internal var listNestedTransformationExpression: List<Pair<String, TransformationExpression<*>>> =
-        emptyList()
+    internal var listNestedTransformationExpression: List<Pair<String, TransformationExpression<*>>> by Delegates.observable(emptyList()) { _, _, newList ->
+        if (newList.isNotEmpty()) hasConfig = true
+    }
+    internal var listInverseTransformationExpression: List<Pair<String, TransformationExpression<*>>> by Delegates.observable(emptyList()) { _, _, newList ->
+        if (newList.isNotEmpty()) hasConfig = true
+    }
 
-    internal var listInverseTransformationExpression: List<Pair<String, TransformationExpression<*>>> =
-        emptyList()
+    private var hasConfig: Boolean = false
 
-    fun hasConfiguration(): Boolean = this.listIgnoredExpression.isNotEmpty() ||
-        this.listIgnoredAttribute.isNotEmpty() || this.listTransformationExpression.isNotEmpty() || this.listNestedTransformationExpression.isNotEmpty() || this.listMappedAttributes.isNotEmpty()
+    fun hasConfiguration(): Boolean = hasConfig
 
     fun ignoreAtt(srcAtt: String): ConfigMapper<T, R> {
         if (!listIgnoredAttribute.contains(srcAtt)) {
