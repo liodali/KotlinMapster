@@ -8,22 +8,69 @@ import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.primaryConstructor
 import kotlin.reflect.full.superclasses
 
-fun <T : Any, R : Any> BaseMapper<T, R>.ignore(
-    srcAttribute: String
-):
-    BaseMapper<T, R> {
-        val base = this
-        base.configMapper.apply {
-            this.ignoreAtt(srcAttribute)
+private fun <T : Any, R : Any> BaseMapper<T, R>.verifyAttExist(
+    attribute: String? = null,
+    attributes: List<String>? = null,
+    checkSrcAtt: Boolean = true
+): Boolean {
+    val base = this
+    val typedChecked: KClass<*>? = if (checkSrcAtt) {
+        base.src
+    } else
+        base.dest
+    return when {
+        attributes != null -> {
+            typedChecked?.primaryConstructor!!.parameters.map {
+                it.name
+            }.toList().containsAll(attributes)
         }
-        return base
+        attribute != null -> {
+            return typedChecked?.primaryConstructor!!.parameters.map {
+                it.name
+            }.toList().contains(attribute)
+        }
+        else -> false
     }
+
+}
+
+fun <T : Any, R : Any> BaseMapper<T, R>.ignore(
+    srcAttribute: String,
+): BaseMapper<T, R> {
+    val base = this
+    assert(base.verifyAttExist(attribute = srcAttribute)) {
+        "$srcAttribute doesn't exist in ${base.src.simpleName}"
+    }
+
+    base.configMapper.apply {
+        this.ignoreAtt(srcAttribute)
+    }
+    return base
+}
+
+fun <T : Any, R : Any> BaseMapper<T, R>.ignoreMultiple(
+    attributes: List<String>,
+): BaseMapper<T, R> {
+    val base = this
+    assert(base.verifyAttExist(attributes = attributes)) {
+        "${attributes.map { e -> print(e) }} doesn't exist in ${base.src.simpleName}"
+    }
+    base.configMapper.apply {
+        attributes.forEach { att ->
+            this.ignoreAtt(att)
+
+        }
+    }
+    return base
+}
 
 fun <T : Any, R : Any> BaseMapper<T, R>.mapMultiple(
     from: Array<String>,
     to: String
 ): BaseMapper<T, R> {
     val base = this
+    assert(base.verifyAttExist(attributes = from.toList())) { "$from doesn't exist in ${base.src.simpleName}" }
+    assert(base.verifyAttExist(attribute = to, checkSrcAtt = false))
     base.configMapper.apply {
         this.map(from, to)
     }
@@ -35,6 +82,9 @@ fun <T : Any, R : Any> BaseMapper<T, R>.mapTo(
     to: String
 ): BaseMapper<T, R> {
     val base = this
+
+    assert(base.verifyAttExist(attribute = from)) { "$from doesn't exist in ${base.src.simpleName}" }
+    assert(base.verifyAttExist(attribute = to, checkSrcAtt = false)) { "$to doesn't exist ${base.dest?.simpleName}" }
     base.configMapper.apply {
         this.map(arrayOf(from), to)
     }
@@ -46,12 +96,13 @@ fun <T : Any, R : Any> BaseMapper<T, R>.transformation(
     transformation: TransformationExpression<T>
 ): BaseMapper<T, R> {
     val base = this
+    assert(base.verifyAttExist(attribute = attribute))
     base.configMapper.apply {
         this.transformation(attribute) {
             transformation(it as T)
         }
     }
-    return base as BaseMapper<T, R>
+    return base
 }
 
 fun <T : Any, R : Any> BaseMapper<T, R>.inverseTransformation(
@@ -59,6 +110,8 @@ fun <T : Any, R : Any> BaseMapper<T, R>.inverseTransformation(
     transformation: TransformationExpression<R>
 ): BaseMapper<T, R> {
     val base = this
+    assert(base.verifyAttExist(attribute = attribute, checkSrcAtt = false))
+
     base.configMapper.apply {
         this.inverseTransformation(attribute) { e ->
             transformation(e as R)
@@ -72,6 +125,7 @@ fun <T : Any, R : Any> BaseMapper<T, R>.ignoreIf(
     expression: ConditionalIgnore<T>
 ): BaseMapper<T, R> {
     val base = this
+    assert(base.verifyAttExist(attribute = srcAttribute))
     (base.configMapper as ConfigMapper<T, R>).ignoreIf(srcAttribute) {
         expression(it)
     }
@@ -288,8 +342,8 @@ class BaseMapper<T : Any, R : Any> : IMapper<T, R> {
     private constructor(sourceList: List<T>) : this(sourceList, null)
     private constructor(source: T) : this(null, source)
 
-    private var dest: KClass<*>? = null
-    private lateinit var src: KClass<*>
+    internal var dest: KClass<*>? = null
+    internal lateinit var src: KClass<*>
 
     private var sourceData: T? = null
     private var sourceListData: List<T>? = null
