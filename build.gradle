@@ -46,8 +46,9 @@ repositories {
 }
 
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:1.4.3"
     implementation "org.jetbrains.kotlin:kotlin-reflect:1.4.21"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.3"
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.0'
     testImplementation 'io.github.serpro69:kotlin-faker:1.4.1'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'

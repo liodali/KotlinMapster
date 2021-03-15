@@ -1,5 +1,9 @@
 package mapper
 
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.suspendCancellableCoroutine
+import java.lang.Exception
 import kotlin.IllegalArgumentException
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
@@ -401,6 +405,22 @@ class BaseMapper<T : Any, R : Any> : IMapper<T, R> {
             return sourceData!!.mapping(dest!!, configMapper) as R
         }
         return sourceData!!.adaptTo(dest!!) as R
+    }
+
+    @ExperimentalCoroutinesApi
+    suspend fun adaptAsync(source: T? = sourceData, onCancellation: (Throwable)->Unit):R{
+        return suspendCancellableCoroutine{ continuation ->
+             try {
+
+                 continuation.resume(
+                     adapt(source),
+                     onCancellation = onCancellation
+                 )
+
+             }catch (e:Exception){
+                 continuation.cancel(e)
+             }
+        }
     }
 
     fun adaptList(listSource: List<T>? = sourceListData): List<R> {
