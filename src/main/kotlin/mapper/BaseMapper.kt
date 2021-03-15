@@ -408,18 +408,24 @@ class BaseMapper<T : Any, R : Any> : IMapper<T, R> {
     }
 
     @ExperimentalCoroutinesApi
-    suspend fun adaptAsync(source: T? = sourceData, onCancellation: (Throwable)->Unit):R{
-        return suspendCancellableCoroutine{ continuation ->
-             try {
+    suspend fun adaptAsync(source: T? = sourceData, onCancellation: (Throwable) -> Unit): R {
+        return suspendCancellableCoroutine { continuation ->
+            try {
 
-                 continuation.resume(
-                     adapt(source),
-                     onCancellation = onCancellation
-                 )
+                continuation.resume(
+                    adapt(source),
+                    onCancellation = onCancellation
+                )
 
-             }catch (e:Exception){
-                 continuation.cancel(e)
-             }
+            } catch (e: Exception) {
+                continuation.cancel(e)
+            }
+        }
+    }
+
+    suspend fun adaptAsync(source: T? = sourceData): R {
+        return suspendCancellableCoroutine { continuation ->
+            continuation.resumeWith(Result.success(adapt(source)))
         }
     }
 
