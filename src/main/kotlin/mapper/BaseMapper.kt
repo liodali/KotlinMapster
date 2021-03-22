@@ -1,10 +1,9 @@
 package mapper
 
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.suspendCancellableCoroutine
-import java.lang.Exception
 import kotlin.IllegalArgumentException
+import kotlin.coroutines.resume
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.declaredMemberProperties
@@ -392,6 +391,16 @@ class BaseMapper<T : Any, R : Any> : IMapper<T, R> {
         return source.adaptTo(src) as T
     }
 
+    /*
+       * [adaptInverseAsync] : asynchronous method to inverse mapping from R to T
+       *
+       */
+    suspend fun adaptInverseAsync(source: R): T {
+        return suspendCancellableCoroutine { continuation ->
+            continuation.resumeWith(Result.success(adaptInverse(source)))
+        }
+    }
+
     fun adapt(source: T? = sourceData): R {
         if (dest == null) {
             throw UndefinedDestinationObject
@@ -407,25 +416,14 @@ class BaseMapper<T : Any, R : Any> : IMapper<T, R> {
         return sourceData!!.adaptTo(dest!!) as R
     }
 
-    @ExperimentalCoroutinesApi
-    suspend fun adaptAsync(source: T? = sourceData, onCancellation: (Throwable) -> Unit): R {
-        return suspendCancellableCoroutine { continuation ->
-            try {
-
-                continuation.resume(
-                    adapt(source),
-                    onCancellation = onCancellation
-                )
-
-            } catch (e: Exception) {
-                continuation.cancel(e)
-            }
-        }
-    }
 
     suspend fun adaptAsync(source: T? = sourceData): R {
         return suspendCancellableCoroutine { continuation ->
+            continuation.invokeOnCancellation {
+                Result.failure<R>(it!!)
+            }
             continuation.resumeWith(Result.success(adapt(source)))
+
         }
     }
 
@@ -451,6 +449,13 @@ class BaseMapper<T : Any, R : Any> : IMapper<T, R> {
         return sourceListData!!.adaptListTo(dest!!) as List<R>
     }
 
+    suspend fun adaptListAsync(listSource: List<T>? = sourceListData): List<R> {
+
+        return suspendCancellableCoroutine { continuation ->
+            continuation.resume(adaptList(sourceListData))
+        }
+    }
+
     fun adaptListInverse(listSource: List<R>): List<T> {
 
         if (dest == null) {
@@ -465,19 +470,19 @@ class BaseMapper<T : Any, R : Any> : IMapper<T, R> {
                 this.isBackward = true
                 val inverseValue = this.adaptInverse(source)
                 list.add(inverseValue)
-//                list.add(
-//                    it.mapping(
-//                        src,
-//                        configMapper,
-//                        isNested = isNested,
-//                        isBackward = true
-//                    ) as T
-//                )
             }
             this.isBackward = false
             return list.toList()
         }
         return listSource.adaptListTo(src) as List<T>
+    }
+
+
+    suspend fun adaptListInverseAsync(listSource: List<R>): List<T> {
+
+        return suspendCancellableCoroutine { continuation ->
+            continuation.resume(adaptListInverse(listSource))
+        }
     }
 
     fun <K : Any> nestedTransformation(

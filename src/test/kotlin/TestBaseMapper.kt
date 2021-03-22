@@ -1,4 +1,6 @@
 import io.github.serpro69.kfaker.Faker
+import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers.IO
 import mapper.BaseMapper
 import mapper.ConfigMapper
 import mapper.UndefinedDestinationObject
@@ -10,6 +12,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.lang.IllegalArgumentException
 import java.security.MessageDigest
+import java.util.concurrent.CancellationException
 
 class TestBaseMapper {
     private val faker = Faker()
@@ -151,6 +154,25 @@ class TestBaseMapper {
 
         assert(dto == UserDTO(email, AddressDTO(country, fullAdr)))
     }
+
+    @Test
+    fun testAsyncAdapt() {
+        data class User(val name: String, val password: String)
+        data class UserDTO(val name: String?, val password: String)
+
+        val name = faker.name.firstName()
+        val pwd = "1234"
+        val user = User(name, password = pwd)
+
+        val mapper = BaseMapper.from(user).to(UserDTO::class)
+        val dto = runBlocking {
+            mapper.adaptAsync()
+        }
+        assert(dto == UserDTO(name, pwd))
+    }
+
+
+
 
     private fun hashPassword(password: String): String {
         val hex = "0123456789ABCDEF"
