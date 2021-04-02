@@ -1,6 +1,5 @@
 package mapper
 
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.IllegalArgumentException
 import kotlin.coroutines.resume
@@ -11,40 +10,11 @@ import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.primaryConstructor
 import kotlin.reflect.full.superclasses
 
-private fun <T : Any, R : Any> BaseMapper<T, R>.verifyAttExist(
-    attribute: String? = null,
-    attributes: List<String>? = null,
-    checkSrcAtt: Boolean = true
-): Boolean {
-    val base = this
-    val typedChecked: KClass<*>? = if (checkSrcAtt) {
-        base.src
-    } else
-        base.dest
-    return when {
-        attributes != null -> {
-            typedChecked?.primaryConstructor!!.parameters.map {
-                it.name
-            }.toList().containsAll(attributes)
-        }
-        attribute != null -> {
-            return typedChecked?.primaryConstructor!!.parameters.map {
-                it.name
-            }.toList().contains(attribute)
-        }
-        else -> false
-    }
-
-}
 
 fun <T : Any, R : Any> BaseMapper<T, R>.ignore(
     srcAttribute: String,
 ): BaseMapper<T, R> {
     val base = this
-    assert(base.verifyAttExist(attribute = srcAttribute)) {
-        "$srcAttribute doesn't exist in ${base.src.simpleName}"
-    }
-
     base.configMapper.apply {
         this.ignoreAtt(srcAttribute)
     }
@@ -56,7 +26,7 @@ fun <T : Any, R : Any> BaseMapper<T, R>.ignoreMultiple(
 ): BaseMapper<T, R> {
     val base = this
     assert(base.verifyAttExist(attributes = attributes)) {
-        "${attributes.map { e -> print(e) }} doesn't exist in ${base.src.simpleName}"
+        "${attributes.map { e -> print(e) }} doesn't exist "
     }
     base.configMapper.apply {
         attributes.forEach { att ->
@@ -72,7 +42,9 @@ fun <T : Any, R : Any> BaseMapper<T, R>.mapMultiple(
     to: String
 ): BaseMapper<T, R> {
     val base = this
-    assert(base.verifyAttExist(attributes = from.toList())) { "$from doesn't exist in ${base.src.simpleName}" }
+    assert(base.verifyAttExist(attributes = from.toList())) {
+        "$from doesn't exist in ${base.src.simpleName}"
+    }
     assert(base.verifyAttExist(attribute = to, checkSrcAtt = false))
     base.configMapper.apply {
         this.map(from, to)
@@ -86,8 +58,12 @@ fun <T : Any, R : Any> BaseMapper<T, R>.mapTo(
 ): BaseMapper<T, R> {
     val base = this
 
-    assert(base.verifyAttExist(attribute = from)) { "$from doesn't exist in ${base.src.simpleName}" }
-    assert(base.verifyAttExist(attribute = to, checkSrcAtt = false)) { "$to doesn't exist ${base.dest?.simpleName}" }
+    assert(base.verifyAttExist(attribute = from)) {
+        "$from doesn't exist in ${base.src.simpleName}"
+    }
+    assert(base.verifyAttExist(attribute = to, checkSrcAtt = false)) {
+        "$to doesn't exist ${base.dest?.simpleName}"
+    }
     base.configMapper.apply {
         this.map(arrayOf(from), to)
     }
@@ -99,7 +75,7 @@ fun <T : Any, R : Any> BaseMapper<T, R>.transformation(
     transformation: TransformationExpression<T>
 ): BaseMapper<T, R> {
     val base = this
-    assert(base.verifyAttExist(attribute = attribute))
+    assert(base.verifyAttExist(attribute = attribute, checkSrcAtt = false))
     base.configMapper.apply {
         this.transformation(attribute) {
             transformation(it as T)
@@ -113,7 +89,7 @@ fun <T : Any, R : Any> BaseMapper<T, R>.inverseTransformation(
     transformation: TransformationExpression<R>
 ): BaseMapper<T, R> {
     val base = this
-    assert(base.verifyAttExist(attribute = attribute, checkSrcAtt = false))
+    assert(base.verifyAttExist(attribute = attribute))
 
     base.configMapper.apply {
         this.inverseTransformation(attribute) { e ->
@@ -162,43 +138,6 @@ internal fun Any.getParentFieldValue(
     return field!!.get(this)
 }
 
-internal fun Any.getFieldValue(
-    src: KClass<Any>,
-    destName: String,
-    mappedName: Any?,
-    prop: KProperty1<Any, *>? = null,
-    isNested: Boolean = false,
-): Pair<Any?, KProperty1<Any, *>> {
-    val field = src.declaredMemberProperties.firstOrNull {
-        when (mappedName) {
-            is Array<*> -> {
-                mappedName.contains(it.name)
-            }
-            else -> {
-                val name = mappedName ?: destName
-                it.name == name
-            }
-        }
-    }
-
-    if (field == null) {
-        src.declaredMemberProperties.forEach { p ->
-            if ((p.returnType.classifier as KClass<*>).isData) {
-                return this.getFieldValue(
-                    (p.returnType.classifier as KClass<Any>),
-                    destName,
-                    mappedName,
-                    prop = p,
-                    isNested = true
-                )
-            }
-        }
-    }
-    if (isNested) {
-        return Pair(field!!.getValue((prop as KProperty1<Any, *>).get(this)!!, field)!!, field)
-    }
-    return Pair(field!!.get(this), field)
-}
 
 private fun <T : Any> T.mapping(
     dest: KClass<*>,
@@ -323,7 +262,7 @@ private fun <T : Any> T.mapping(
     return dest.primaryConstructor!!.call(*fieldsArgs)
 }
 
-class BaseMapper<T : Any, R : Any> : IMapper<T, R> {
+class BaseMapper< T : Any, R : Any> : IMapper<T, R> {
     constructor() {
         instance = this
     }
@@ -358,20 +297,21 @@ class BaseMapper<T : Any, R : Any> : IMapper<T, R> {
         private set
 
     companion object {
-        private lateinit var instance: BaseMapper<*, *>
+        internal lateinit var instance: BaseMapper<*, *>
         fun <T> from(source: T): BaseMapper<T, Any> where T : Any {
             instance = BaseMapper<T, Any>(source)
             instance.configMapper = ConfigMapper<T, Any>()
             return instance.from(source::class) as BaseMapper<T, Any>
         }
 
-        fun <T : Any> fromList(list: List<T>): BaseMapper<T, Any> {
-            instance = BaseMapper<T, Any>(list)
-            instance.configMapper = ConfigMapper<T, Any>()
-            val typeData = (list::class as KClass<*>).memberProperties.first()
-                .returnType.arguments.first().type!!.classifier as KClass<*>
-            return instance.from(typeData) as BaseMapper<T, Any>
-        }
+//         fun <T> fromList(
+//            list: List<T>
+//        ): BaseMapper<T, Any> where T : Any  {
+//            instance = BaseMapper<T, Any>(list)
+//             instance.newConfig(ConfigMapper<T, Any>())
+//
+//            return instance as  BaseMapper<T, Any>
+//        }
     }
 
     fun <T, R> newConfig(configMapper: ConfigMapper<T, R>): BaseMapper<T, R> where T : Any, R : Any {
@@ -427,13 +367,10 @@ class BaseMapper<T : Any, R : Any> : IMapper<T, R> {
         }
     }
 
-    fun adaptList(listSource: List<T>? = sourceListData): List<R> {
+    fun  adaptList(listSource: List<T>): List<R> {
 
         if (dest == null) {
             throw UndefinedDestinationObject
-        }
-        if (listSource == null) {
-            throw UndefinedSourceObject
         }
         sourceListData = listSource
         if (sourceListData!!.isEmpty()) {
@@ -449,10 +386,10 @@ class BaseMapper<T : Any, R : Any> : IMapper<T, R> {
         return sourceListData!!.adaptListTo(dest!!) as List<R>
     }
 
-    suspend fun adaptListAsync(listSource: List<T>? = sourceListData): List<R> {
+    suspend fun adaptListAsync(listSource: List<T>): List<R> {
 
         return suspendCancellableCoroutine { continuation ->
-            continuation.resume(adaptList(sourceListData))
+            continuation.resume(adaptList(listSource))
         }
     }
 

@@ -26,11 +26,9 @@ inline fun <reified R : Any, reified T : Any> IMapper<T, R>.adaptListInverse(src
     return src.adaptListTo(T::class).toList()
 }
 
-inline fun <reified R : Any, T : Any> IMapper<T, R>.adaptList(src: List<T> = emptyList()): List<R> {
+inline fun <reified R : Any, T : Any> IMapper<T, R>.adaptList(src: List<T>): List<R> {
     if (this is BaseMapper) {
-        return if (src.isEmpty())
-            this.adaptList()
-        else this.adaptList(src)
+     return this.adaptList(src)
     }
     return src.adaptListTo(R::class).toList()
 }
