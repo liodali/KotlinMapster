@@ -32,19 +32,13 @@ class TestBaseMapper {
         /*
          * test exception,particular cases
          */
+
         /*
          * test case where destination object was not defined
          */
-        var mapper2 = BaseMapper.from(user)
+        val mapper2 = BaseMapper.from(user)
         assertThrows<UndefinedDestinationObject> {
             mapper2.adapt()
-        }
-        /*
-         * test case where destination object was not defined
-         */
-        mapper2 = BaseMapper.from(user)
-        assertThrows<UndefinedDestinationObject> {
-            mapper2.adapt(null)
         }
     }
 

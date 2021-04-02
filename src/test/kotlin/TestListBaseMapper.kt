@@ -24,11 +24,12 @@ class TestListBaseMapper {
             users.add(User(name, password = pwd))
         }
 
-        val mapper = BaseMapper
-            .fromList(users.toList())
-            .to(UserDTO::class).ignore("password")
+        val mapper = BaseMapper<User, UserDTO>()
+            .from(User::class)
+            .to(UserDTO::class)
+            .ignore("password")
 
-        val dtoList = mapper.adaptList()
+        val dtoList = mapper.adaptList(users)
         assert(dtoList.first().name == users.first().name)
     }
 
@@ -45,9 +46,6 @@ class TestListBaseMapper {
         }
         val mapper = BaseMapper<User, UserDTO>().to(UserDTO::class)
 
-        assertThrows<UndefinedSourceObject> {
-            mapper.adaptList()
-        }
         val listDTOs = mapper.adaptList(users)
         assert(listDTOs.first().name == users.first().name)
     }
