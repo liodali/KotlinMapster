@@ -10,7 +10,7 @@ plugins {
     id "com.jfrog.bintray" version("1.8.4")
     id 'java'
     id 'java-library'
-    id 'org.jetbrains.kotlin.jvm' version '1.4.21'
+    id 'org.jetbrains.kotlin.jvm' version '1.4.30'
     id 'org.jlleitschuh.gradle.ktlint' version '9.4.1'
     id 'jacoco'
     id 'maven-publish'
@@ -46,7 +46,7 @@ repositories {
 }
 
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:1.4.3"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:1.4.30"
     implementation "org.jetbrains.kotlin:kotlin-reflect:1.4.21"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.3"
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.0'
@@ -133,4 +133,3 @@ publishing {
     }
 }
 
-apply from: 'bintray.gradle'
