@@ -1,13 +1,11 @@
 import io.github.serpro69.kfaker.Faker
 import mapper.BaseMapper
 import mapper.IMapper
-import mapper.UndefinedSourceObject
 import mapper.adapt
 import mapper.adaptList
 import mapper.ignore
 import mapper.mapTo
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 
 class TestListBaseMapper {
     private val faker = Faker()
@@ -25,7 +23,6 @@ class TestListBaseMapper {
         }
 
         val mapper = BaseMapper<User, UserDTO>()
-            .from(User::class)
             .to(UserDTO::class)
             .ignore("password")
 

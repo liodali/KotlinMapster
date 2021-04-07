@@ -1,7 +1,5 @@
 package mapper
 
-import java.lang.reflect.ParameterizedType
-import java.lang.reflect.Type
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.declaredMemberProperties
@@ -29,7 +27,6 @@ internal fun <T : Any, R : Any> BaseMapper<T, R>.verifyAttExist(
                 typedChecked,
                 attributes
             )
-
         }
         attribute != null -> {
             val isCheckPrimaryAtt = typedChecked?.primaryConstructor!!.parameters.map {
@@ -43,7 +40,6 @@ internal fun <T : Any, R : Any> BaseMapper<T, R>.verifyAttExist(
         }
         else -> false
     }
-
 }
 
 private fun checkExistingNestedAtt(
@@ -109,4 +105,3 @@ internal fun Any.getFieldValue(
     }
     return Pair(field!!.get(this), field)
 }
-

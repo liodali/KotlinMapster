@@ -28,7 +28,7 @@ inline fun <reified R : Any, reified T : Any> IMapper<T, R>.adaptListInverse(src
 
 inline fun <reified R : Any, T : Any> IMapper<T, R>.adaptList(src: List<T>): List<R> {
     if (this is BaseMapper) {
-     return this.adaptList(src)
+        return this.adaptList(src)
     }
     return src.adaptListTo(R::class).toList()
 }

@@ -10,7 +10,6 @@ import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.primaryConstructor
 import kotlin.reflect.full.superclasses
 
-
 fun <T : Any, R : Any> BaseMapper<T, R>.ignore(
     srcAttribute: String,
 ): BaseMapper<T, R> {
@@ -31,7 +30,6 @@ fun <T : Any, R : Any> BaseMapper<T, R>.ignoreMultiple(
     base.configMapper.apply {
         attributes.forEach { att ->
             this.ignoreAtt(att)
-
         }
     }
     return base
@@ -137,7 +135,6 @@ internal fun Any.getParentFieldValue(
     }
     return field!!.get(this)
 }
-
 
 private fun <T : Any> T.mapping(
     dest: KClass<*>,
@@ -262,7 +259,7 @@ private fun <T : Any> T.mapping(
     return dest.primaryConstructor!!.call(*fieldsArgs)
 }
 
-class BaseMapper< T : Any, R : Any> : IMapper<T, R> {
+class BaseMapper<T : Any, R : Any> : IMapper<T, R> {
     constructor() {
         instance = this
     }
@@ -356,18 +353,16 @@ class BaseMapper< T : Any, R : Any> : IMapper<T, R> {
         return sourceData!!.adaptTo(dest!!) as R
     }
 
-
     suspend fun adaptAsync(source: T? = sourceData): R {
         return suspendCancellableCoroutine { continuation ->
             continuation.invokeOnCancellation {
                 Result.failure<R>(it!!)
             }
             continuation.resumeWith(Result.success(adapt(source)))
-
         }
     }
 
-    fun  adaptList(listSource: List<T>): List<R> {
+    fun adaptList(listSource: List<T>): List<R> {
 
         if (dest == null) {
             throw UndefinedDestinationObject
@@ -413,7 +408,6 @@ class BaseMapper< T : Any, R : Any> : IMapper<T, R> {
         }
         return listSource.adaptListTo(src) as List<T>
     }
-
 
     suspend fun adaptListInverseAsync(listSource: List<R>): List<T> {
 
