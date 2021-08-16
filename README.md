@@ -28,8 +28,7 @@ dependencies {
 
 ### simple example :
 
-```
-
+```kotlin
   data class Person(val email: String, val password: String, val firstName: String)
   data class PersonDTO(val email: String, val firstName: String)
   
