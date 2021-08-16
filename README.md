@@ -6,9 +6,7 @@
 * Array & List mapping
 * inverse mapping
 
-`stable-version : 0.3.1`
-
-`dev-version : 0.4.0-beta05`
+`stable-version : 0.4.0`
 
 ### Gradle Installation
 
@@ -21,10 +19,6 @@
             username = "YOUR-USERNAME"
             password = "YOUR-TOKEN-GITHUB"
         }
-    }
-    // or jcenter bintray
-    maven {
-        url = uri("https://dl.bintray.com/liodali/KotlinMapster")
     }
 }
 dependencies {
@@ -116,7 +110,7 @@ Attribute     | description |
     * you can use `IMapper` interface to pass it into a DI
     * support list mapping
     * support nested list mapping and nested Transformation
-    * available in 0.4.0-alpha
+  
 
 ```kotlin
 
