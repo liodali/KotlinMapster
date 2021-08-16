@@ -2,16 +2,14 @@ buildscript {
     repositories {
         mavenLocal()
         mavenCentral()
-        jcenter()
     }
 }
 
 plugins {
-    id "com.jfrog.bintray" version("1.8.4")
     id 'java'
     id 'java-library'
-    id 'org.jetbrains.kotlin.jvm' version '1.4.21'
-    id 'org.jlleitschuh.gradle.ktlint' version '9.4.1'
+    id 'org.jetbrains.kotlin.jvm' version '1.5.21'
+    id 'org.jlleitschuh.gradle.ktlint' version '10.1.0'
     id 'jacoco'
     id 'maven-publish'
 }
@@ -25,9 +23,9 @@ group 'dali.hamza'
 version buildVersion(rootProject)
 
 static def buildVersion(rootProject) {
-    def gradleV = rootProject.getProperties()["version"]
+    def gradleV = rootProject.getProperties().get("version")
     if (rootProject.hasProperty("dev-version")) {
-            return rootProject.getProperties()["dev-version"]
+            return rootProject.getProperties().get("dev-version")
     }
     return gradleV
 }
@@ -42,17 +40,21 @@ configure([compileKotlin, compileTestKotlin]) {
 repositories {
     mavenLocal()
     mavenCentral()
-    jcenter()
 }
 
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib"
-    implementation "org.jetbrains.kotlin:kotlin-reflect:1.4.21"
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.0'
-    testImplementation 'io.github.serpro69:kotlin-faker:1.4.1'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
+    def version_kotlin = "1.5.21"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$version_kotlin"
+    implementation "org.jetbrains.kotlin:kotlin-reflect:$version_kotlin"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.1-native-mt"
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.2'
+    testImplementation 'io.github.serpro69:kotlin-faker:1.7.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.2'
 }
-
+ktlint {
+    debug = true
+    verbose = true
+}
 test {
     useJUnitPlatform()
     finalizedBy jacocoTestReport
@@ -132,4 +134,3 @@ publishing {
     }
 }
 
-apply from: 'bintray.gradle'

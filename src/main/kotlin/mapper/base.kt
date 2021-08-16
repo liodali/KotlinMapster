@@ -38,7 +38,7 @@ fun <T : Any, R : Any> T.adaptTo(dest: KClass<R>): R {
                 if (mapToFieldsValues.containsKey(field.name)) {
                     mapToFieldsValues[field.name]
                 } else {
-                    field!!.get(this)
+                    field.get(this)
                 }
             } else {
                 if ((p.type.classifier as KClass<*>).jvmName == "java.lang.String") {

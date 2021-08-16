@@ -20,6 +20,8 @@ jobs:
       # https://github.com/ncipollo/release-action
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
+      - name: Gradle Test
+        run: ./gradlew test
       - name: Gradle Build
         run: ./gradlew build
       - name: publish new version to github package
@@ -27,12 +29,6 @@ jobs:
         env:
           GPR_USER: ${{ secrets.GPR_USER }}
           GPR_KEY: ${{ secrets.GPR_KEY }}
-        continue-on-error: true
-      - name: publish tp bintray jcenter
-        run: ./gradlew bintrayUpload
-        env:
-          GPR_USER: ${{ secrets.GPR_USER }}
-          BINTRAY_KEY: ${{ secrets.BINTRAY_KEY }}
         continue-on-error: true
       - name: Create a Release JAR
         uses: ncipollo/release-action@v1

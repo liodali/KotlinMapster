@@ -1,4 +1,5 @@
 import io.github.serpro69.kfaker.Faker
+import kotlinx.coroutines.runBlocking
 import mapper.BaseMapper
 import mapper.ConfigMapper
 import mapper.UndefinedDestinationObject
@@ -29,19 +30,13 @@ class TestBaseMapper {
         /*
          * test exception,particular cases
          */
+
         /*
          * test case where destination object was not defined
          */
-        var mapper2 = BaseMapper.from(user)
+        val mapper2 = BaseMapper.from(user)
         assertThrows<UndefinedDestinationObject> {
             mapper2.adapt()
-        }
-        /*
-         * test case where destination object was not defined
-         */
-        mapper2 = BaseMapper.from(user)
-        assertThrows<UndefinedDestinationObject> {
-            mapper2.adapt(null)
         }
     }
 
@@ -150,6 +145,22 @@ class TestBaseMapper {
         val dto = mapper.adapt()
 
         assert(dto == UserDTO(email, AddressDTO(country, fullAdr)))
+    }
+
+    @Test
+    fun testAsyncAdapt() {
+        data class User(val name: String, val password: String)
+        data class UserDTO(val name: String?, val password: String)
+
+        val name = faker.name.firstName()
+        val pwd = "1234"
+        val user = User(name, password = pwd)
+
+        val mapper = BaseMapper.from(user).to(UserDTO::class)
+        val dto = runBlocking {
+            mapper.adaptAsync()
+        }
+        assert(dto == UserDTO(name, pwd))
     }
 
     private fun hashPassword(password: String): String {
