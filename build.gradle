@@ -8,7 +8,7 @@ buildscript {
 plugins {
     id 'java'
     id 'java-library'
-    id 'org.jetbrains.kotlin.jvm' version '1.5.21'
+    id 'org.jetbrains.kotlin.jvm' version '1.9.22'
     id 'org.jlleitschuh.gradle.ktlint' version '10.1.0'
     id 'jacoco'
     id 'maven-publish'
@@ -43,7 +43,7 @@ repositories {
 }
 
 dependencies {
-    def version_kotlin = "1.5.21"
+    def version_kotlin = "1.9.22"
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$version_kotlin"
     implementation "org.jetbrains.kotlin:kotlin-reflect:$version_kotlin"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.1-native-mt"
@@ -66,10 +66,10 @@ jacocoTestReport {
         csv.enabled true
     }
 }
-task sourcesJar(type: Jar) {
-    classifier('source')
-    from sourceSets.main.allSource
+java {
+   withSourcesJar()
 }
+
 artifacts {
     archives sourcesJar
 }
@@ -103,7 +103,6 @@ def user = getGprUser(props)
 def key = getGprKey(props)
 
 publishing {
-
     repositories {
         maven {
             name = "Mapster-Kotlin"
@@ -111,24 +110,6 @@ publishing {
             credentials {
                 username = user
                 password = key
-            }
-        }
-    }
-    publications {
-        mavenJava(MavenPublication) {
-            groupId = 'com.hamza.dali'
-            artifactId = "mapster-ktx"
-            version = "$version"
-            from components.java
-            pom {
-                name = 'MapsterKotlin'
-                description = 'Fun and easy mapper library.'
-                licenses {
-                    license {
-                        name = 'The Apache License, Version 2.0'
-                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-                    }
-                }
             }
         }
     }
